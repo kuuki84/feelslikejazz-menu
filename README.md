@@ -11,4 +11,4 @@
 
 - 주소: https://kuuki84.github.io/feelslikejazz-menu/parking/
 - 자료 고치기: `parking/stores.json`만 고치면 됩니다. 가게는 `stores`에 `{"name","category","lat","lng","hours":{"mon":"10:00-21:00",...,"sun":"휴무"},"parkingFront","note"}` 모양으로 넣습니다. 밤을 넘기면 `"18:00-02:00"`, 모르면 `null`.
-- 지도는 OpenStreetMap, 길찾기는 카카오맵 링크를 씁니다.
+- 지도: `stores.json`의 `naverClientId`에 네이버 클라우드 Maps Client ID를 넣으면 네이버 지도, 비우면 OpenStreetMap. 열쇠가 틀리면 자동으로 OpenStreetMap으로 돌아감. 길찾기는 카카오맵 링크.

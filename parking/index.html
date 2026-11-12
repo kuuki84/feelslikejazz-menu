@@ -75,7 +75,7 @@ const RADIUS = 1000; // 가게에서 1km
 const DAYS = ['sun','mon','tue','wed','thu','fri','sat'];
 const DAY_KO = ['일','월','화','수','목','금','토'];
 let onlyFree = false, BASE_KEY = 'parking.baseOverride';
-let DATA = null, map, layer, meMarker, meAccuracy, watchId = null, useNow = true, follow = false;
+let DATA = null, map, meMarker, meAccuracy, mePos = null, watchId = null, useNow = true, follow = false;
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -134,17 +134,77 @@ function navLink(name, lat, lng) {
   return `https://map.kakao.com/link/to/${encodeURIComponent(name)},${lat},${lng}`;
 }
 
-const dist = (a, b) => map.distance([a.lat, a.lng], [b.lat, b.lng]);
+function dist(a, b) {
+  const R = 6371000, r = Math.PI/180, dLat = (b.lat-a.lat)*r, dLng = (b.lng-a.lng)*r;
+  const h = Math.sin(dLat/2)**2 + Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dLng/2)**2;
+  return 2*R*Math.asin(Math.sqrt(h));
+}
+
+// 지도 바꿔 끼우기: 네이버(열쇠가 있으면) 또는 OpenStreetMap(Leaflet)
+function makeLeaflet() {
+  const m = L.map('map', {zoomControl:true});
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, subdomains:'abc', attribution:'© OpenStreetMap'}).addTo(m);
+  const group = L.layerGroup().addTo(m); const popups = [];
+  return {
+    setView: (ll, z) => m.setView(ll, z), panTo: ll => m.panTo(ll),
+    onDragStart: cb => m.on('dragstart', cb),
+    clear: () => { group.clearLayers(); popups.length = 0; },
+    circle: (ll, radius, o, keep) => { const c = L.circle(ll, {radius, color:o.color, weight:o.weight, fillOpacity:o.fillOpacity, interactive:false}).addTo(keep ? m : group);
+      return {set: (ll2, r2) => { c.setLatLng(ll2); if (r2) c.setRadius(r2); }}; },
+    marker: (ll, html, size, z, popup, keep) => {
+      const mk = L.marker(ll, {icon:L.divIcon({className:'', html, iconSize:size, iconAnchor:[size[0]/2, size[1]/2]}), zIndexOffset:z}).addTo(keep ? m : group);
+      if (popup) { mk.bindPopup(popup); popups.push({ll, open: () => mk.openPopup()}); }
+      return {set: ll2 => mk.setLatLng(ll2)};
+    },
+    openAt: ll => { const f = popups.find(x => x.ll[0] === ll[0] && x.ll[1] === ll[1]); if (f) f.open(); },
+  };
+}
+
+function makeNaver() {
+  const N = naver.maps, P = ll => new N.LatLng(ll[0], ll[1]);
+  const m = new N.Map('map', {center:P([DATA.base.lat, DATA.base.lng]), zoom:16, zoomControl:true, zoomControlOptions:{position:N.Position.TOP_LEFT}});
+  const iw = new N.InfoWindow({content:'', borderWidth:0, backgroundColor:'#fff', anchorColor:'#fff', disableAnchor:false, pixelOffset:new N.Point(0,-8)});
+  let items = []; const popups = [];
+  N.Event.addListener(m, 'click', () => iw.close());
+  return {
+    setView: (ll, z) => { m.setCenter(P(ll)); m.setZoom(z); }, panTo: ll => m.panTo(P(ll)),
+    onDragStart: cb => N.Event.addListener(m, 'dragstart', cb),
+    clear: () => { items.forEach(x => x.setMap(null)); items = []; popups.length = 0; iw.close(); },
+    circle: (ll, radius, o, keep) => { const c = new N.Circle({map:m, center:P(ll), radius, strokeColor:o.color, strokeWeight:o.weight, strokeOpacity:0.9, fillColor:o.color, fillOpacity:o.fillOpacity, clickable:false});
+      if (!keep) items.push(c); return {set: (ll2, r2) => { c.setCenter(P(ll2)); if (r2) c.setRadius(r2); }}; },
+    marker: (ll, html, size, z, popup, keep) => {
+      const mk = new N.Marker({map:m, position:P(ll), zIndex:z + 100, icon:{content:html, anchor:new N.Point(size[0]/2, size[1]/2)}});
+      if (!keep) items.push(mk);
+      if (popup) {
+        const open = () => { iw.setContent(`<div style="padding:10px 12px;color:#111;font-size:14px;line-height:1.5;max-width:260px">${popup}</div>`); iw.open(m, mk); };
+        N.Event.addListener(mk, 'click', open); popups.push({ll, open});
+      }
+      return {set: ll2 => mk.setPosition(P(ll2))};
+    },
+    openAt: ll => { const f = popups.find(x => x.ll[0] === ll[0] && x.ll[1] === ll[1]); if (f) f.open(); },
+  };
+}
+
+function loadNaver(id) {
+  return new Promise((ok, fail) => {
+    window.navermap_authFailure = () => { location.replace(location.pathname + '?map=osm&why=naver-key'); };
+    const sc = document.createElement('script');
+    sc.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${encodeURIComponent(id)}`;
+    sc.onload = () => window.naver && naver.maps ? ok() : fail(); sc.onerror = fail;
+    document.head.appendChild(sc);
+    setTimeout(fail, 8000);
+  });
+}
 
 function render() {
   if (!DATA) return;
   const when = chosenDate();
   $('when').textContent = `${when.getMonth()+1}월 ${when.getDate()}일 (${DAY_KO[when.getDay()]}) ${fmt(when.getHours()*60+when.getMinutes())} 기준` + (useNow ? ' · 지금' : '');
-  layer.clearLayers();
+  map.clear();
   const base = DATA.base;
-  L.circle([base.lat, base.lng], {radius:RADIUS, color:'#f5b942', weight:1.5, fillOpacity:0.04, interactive:false}).addTo(layer);
-  L.marker([base.lat, base.lng], {icon:L.divIcon({className:'', html:'<div class="basepin">🎷</div>', iconSize:[26,26], iconAnchor:[13,13]}), zIndexOffset:1000})
-    .bindPopup(`<b>${esc(base.name)}</b><br>${esc(base.address)}${base.coordNote ? `<br><small>위치: ${esc(base.coordNote)}</small>` : ''}`).addTo(layer);
+  map.circle([base.lat, base.lng], RADIUS, {color:'#f5b942', weight:1.5, fillOpacity:0.04});
+  map.marker([base.lat, base.lng], '<div class="basepin">🎷</div>', [26,26], 1000,
+    `<b>${esc(base.name)}</b><br>${esc(base.address)}${base.coordNote ? `<br><small>위치: ${esc(base.coordNote)}</small>` : ''}`);
 
   const rows = []; let freeStores = 0, freeLots = 0;
   for (const s of DATA.stores || []) {
@@ -162,8 +222,7 @@ function render() {
       ${front ? esc(front) + '<br>' : ''}${s.note ? esc(s.note) + '<br>' : ''}
       <small>${esc(hoursText(s.hours))}${s.hoursNote ? '<br>' + esc(s.hoursNote) : ''}</small><br>
       <a href="${navLink(s.name, s.lat, s.lng)}" target="_blank" rel="noopener">카카오맵 길찾기</a>`;
-    L.marker([s.lat, s.lng], {icon:L.divIcon({className:'', html: st.state === 'closed' ? `<div class="pin park" style="background:${color}">P</div>` : `<div class="pin" style="background:${color}"></div>`, iconSize: st.state === 'closed' ? [24,24] : [18,18], iconAnchor: st.state === 'closed' ? [12,12] : [9,9]}), zIndexOffset: st.state === 'closed' ? 500 : 0})
-      .bindPopup(html).addTo(layer);
+    map.marker([s.lat, s.lng], st.state === 'closed' ? `<div class="pin park" style="background:${color}">P</div>` : `<div class="pin" style="background:${color}"></div>`, st.state === 'closed' ? [24,24] : [18,18], st.state === 'closed' ? 500 : 0, html);
     rows.push({d, rank: st.state === 'closed' ? 0 : st.state === 'unknown' ? 1 : 2, html:
       `<div class="item" data-lat="${s.lat}" data-lng="${s.lng}"><span class="dot" style="background:${color};margin-top:5px"></span>
        <div><b>${esc(s.name)}</b><small>${[Math.round(d)+'m', s.category, front].filter(Boolean).map(esc).join(' · ')}</small></div>
@@ -177,8 +236,7 @@ function render() {
     const html = `<b>🅿️ ${esc(lot.name)}</b><br><b>${esc(ls.label)}</b><br>${esc(lot.free || '')}<br>
       <small>${esc(lot.fee || '')}${lot.spaces ? ` · ${lot.spaces}면` : ''}<br>${esc(lot.address || '')}${lot.coordNote ? ` (위치 ${esc(lot.coordNote)})` : ''}</small><br>
       <a href="${navLink(lot.name, lot.lat, lot.lng)}" target="_blank" rel="noopener">카카오맵 길찾기</a>${lot.source ? ` · <a href="${esc(lot.source)}" target="_blank" rel="noopener">출처</a>` : ''}`;
-    L.marker([lot.lat, lot.lng], {icon:L.divIcon({className:'', html:`<div class="lotpin ${ls.free ? 'free' : 'paid'}">P</div>`, iconSize: ls.free ? [28,28] : [22,22], iconAnchor: ls.free ? [14,14] : [11,11]}), zIndexOffset:800})
-      .bindPopup(html).addTo(layer);
+    map.marker([lot.lat, lot.lng], `<div class="lotpin ${ls.free ? 'free' : 'paid'}">P</div>`, ls.free ? [28,28] : [22,22], 800, html);
     rows.push({d, rank: ls.free ? -1 : 3, html:
       `<div class="item" data-lat="${lot.lat}" data-lng="${lot.lng}"><span class="dot" style="background:${ls.free ? 'var(--closed)' : '#636366'};border-radius:2px;margin-top:5px"></span>
        <div><b>${esc(lot.name)}</b><small>${Math.round(d)}m · 주차장 ${lot.spaces ? lot.spaces + '면' : ''}</small></div>
@@ -192,8 +250,7 @@ function render() {
     + `<div class="note">초록 = 그 시각에 문 닫은 가게예요. 가게 앞에 세울 수 있는지는 현장 표지판·단속 안내를 꼭 확인하세요. 영업시간은 지도 정보 기준이라 실제와 다를 수 있어요. 공휴일은 따로 계산하지 않아요.<br>자료 기준일: ${esc(DATA.updatedAt || '')}</div>`;
   document.querySelectorAll('.item').forEach(el => el.onclick = () => {
     const ll = [Number(el.dataset.lat), Number(el.dataset.lng)];
-    map.setView(ll, 18);
-    layer.eachLayer(l => { if (l.getLatLng && l.getPopup && l.getLatLng().equals(ll)) l.openPopup(); });
+    map.setView(ll, 18); map.openAt(ll);
   });
 }
 
@@ -212,15 +269,16 @@ function locate() {
   if (!navigator.geolocation) { alert('이 브라우저는 위치를 지원하지 않아요.'); return; }
   follow = true;
   $('btnMe').classList.add('on');
-  if (watchId !== null) { if (meMarker) map.setView(meMarker.getLatLng(), 17); return; }
+  if (watchId !== null) { if (mePos) map.setView(mePos, 17); return; }
   watchId = navigator.geolocation.watchPosition(p => {
     const ll = [p.coords.latitude, p.coords.longitude];
+    mePos = ll;
     if (!meMarker) {
-      meMarker = L.marker(ll, {icon:L.divIcon({className:'', html:'<div class="me"></div>', iconSize:[16,16], iconAnchor:[8,8]}), zIndexOffset:2000}).bindPopup('내 위치').addTo(map);
-      meAccuracy = L.circle(ll, {radius:p.coords.accuracy, color:'#0a84ff', weight:1, fillOpacity:0.08, interactive:false}).addTo(map);
+      meMarker = map.marker(ll, '<div class="me"></div>', [16,16], 2000, '내 위치', true);
+      meAccuracy = map.circle(ll, p.coords.accuracy, {color:'#0a84ff', weight:1, fillOpacity:0.08}, true);
       map.setView(ll, 17);
     } else {
-      meMarker.setLatLng(ll); meAccuracy.setLatLng(ll).setRadius(p.coords.accuracy);
+      meMarker.set(ll); meAccuracy.set(ll, p.coords.accuracy);
       if (follow) map.panTo(ll);
     }
   }, e => {
@@ -230,10 +288,9 @@ function locate() {
 }
 
 function setBase() {
-  if (!meMarker) { alert('먼저 「📍 내 위치」를 눌러 위치를 잡은 뒤, 가게 앞에서 다시 눌러 주세요.'); locate(); return; }
-  const ll = meMarker.getLatLng();
+  if (!mePos) { alert('먼저 「📍 내 위치」를 눌러 위치를 잡은 뒤, 가게 앞에서 다시 눌러 주세요.'); locate(); return; }
   if (!confirm('지금 내 위치를 기분이재즈 위치로 정할까요?')) return;
-  const lat = Math.round(ll.lat * 1e6) / 1e6, lng = Math.round(ll.lng * 1e6) / 1e6;
+  const lat = Math.round(mePos[0] * 1e6) / 1e6, lng = Math.round(mePos[1] * 1e6) / 1e6;
   try { localStorage.setItem(BASE_KEY, JSON.stringify({lat, lng})); } catch (e) {}
   DATA.base = {...DATA.base, lat, lng, coordNote:'이 기기에서 정한 위치'};
   render(); map.setView([lat, lng], 16);
@@ -242,20 +299,22 @@ function setBase() {
 
 async function init() {
   fillTimes();
-  map = L.map('map', {zoomControl:true});
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, subdomains:'abc', attribution:'© OpenStreetMap'}).addTo(map);
-  layer = L.layerGroup().addTo(map);
-  map.on('dragstart', () => { follow = false; $('btnMe').classList.remove('on'); });
   try {
     DATA = await (await fetch('stores.json', {cache:'no-cache'})).json();
   } catch (e) {
-    $('list').innerHTML = '<div class="note">자료(stores.json)를 불러오지 못했어요. 새로고침해 주세요.</div>';
-    map.setView([36.3443, 127.3937], 15); return;
+    $('list').innerHTML = '<div class="note">자료(stores.json)를 불러오지 못했어요. 새로고침해 주세요.</div>'; return;
   }
   try {
     const o = JSON.parse(localStorage.getItem(BASE_KEY) || 'null');
     if (o && typeof o.lat === 'number') DATA.base = {...DATA.base, lat:o.lat, lng:o.lng, coordNote:'이 기기에서 정한 위치'};
   } catch (e) {}
+  const q = new URLSearchParams(location.search);
+  if (DATA.naverClientId && q.get('map') !== 'osm') {
+    try { await loadNaver(DATA.naverClientId); map = makeNaver(); } catch (e) { map = null; }
+  }
+  if (!map) map = makeLeaflet();
+  if (q.get('why') === 'naver-key') $('when').insertAdjacentHTML('afterend', '<span class="when" style="color:var(--open)">네이버 지도 열쇠가 안 맞아서 기본 지도로 보여요.</span>');
+  map.onDragStart(() => { follow = false; $('btnMe').classList.remove('on'); });
   map.setView([DATA.base.lat, DATA.base.lng], 16);
   $('btnFree').onclick = () => { onlyFree = !onlyFree; $('btnFree').classList.toggle('on', onlyFree); render(); };
   $('btnBase').onclick = setBase;

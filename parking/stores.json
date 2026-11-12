@@ -1,0 +1,50 @@
+{
+  "_설명": "가게 주차 지도 데이터. hours는 요일별 'HH:MM-HH:MM'(밤을 넘기면 '18:00-02:00'), 쉬는 날은 '휴무', 모르면 null. coordNote가 '추정'이면 위치가 정확하지 않음.",
+  "updatedAt": "2026-11-12",
+  "base": {
+    "name": "기분이재즈",
+    "address": "대전 서구 탄방동 1169",
+    "lat": 36.3443,
+    "lng": 127.3937,
+    "coordNote": "추정(탄방역 근처로 임시 표시, 정확한 위치 확인 전)"
+  },
+  "stores": [],
+  "lots": [
+    {
+      "name": "서구청 주차장",
+      "address": "대전 서구 둔산서로 100",
+      "lat": 36.3554,
+      "lng": 127.3837,
+      "coordNote": "추정",
+      "free": "평일 18:00~08:00, 주말·공휴일 무료",
+      "paid": { "mon": "08:00-18:00", "tue": "08:00-18:00", "wed": "08:00-18:00", "thu": "08:00-18:00", "fri": "08:00-18:00", "sat": null, "sun": null },
+      "spaces": 471,
+      "fee": "첫 1시간 무료, 이후 15분마다 800원(유료 시간에만)",
+      "source": "https://www.eshare.go.kr/UserPortal/Upv/UprResrcFacl/index.do?rsrc_no=BA10A0007612"
+    },
+    {
+      "name": "서구문화원 공영주차장",
+      "address": "대전 서구 계룡로553번길 38",
+      "lat": 36.3463,
+      "lng": 127.3905,
+      "coordNote": "추정",
+      "free": "평일 22:00~08:00, 주말·공휴일 무료",
+      "paid": { "mon": "08:00-22:00", "tue": "08:00-22:00", "wed": "08:00-22:00", "thu": "08:00-22:00", "fri": "08:00-22:00", "sat": null, "sun": null },
+      "spaces": 160,
+      "fee": "첫 10분 400원, 이후 10분마다 300원(2시간 넘으면 600원), 하루 최대 12,000원",
+      "source": "https://www.eshare.go.kr/UserPortal/Upv/UprResrcExpr/index.do?rsrc_no=CJ14S0939537"
+    },
+    {
+      "name": "탄방동 행정복지센터 옆",
+      "address": "대전 서구 탄방로7번길 97",
+      "lat": 36.3422,
+      "lng": 127.3958,
+      "coordNote": "추정",
+      "free": "평일 18:00~09:00, 주말·공휴일 무료 개방(5대)",
+      "paid": { "mon": "09:00-18:00", "tue": "09:00-18:00", "wed": "09:00-18:00", "thu": "09:00-18:00", "fri": "09:00-18:00", "sat": null, "sun": null },
+      "spaces": 5,
+      "fee": "무료(낮에는 민원인 우선)",
+      "source": "https://www.eshare.go.kr/UserPortal/Upv/UprResrcExpr/index.do?rsrc_no=BA10A0007630"
+    }
+  ]
+}

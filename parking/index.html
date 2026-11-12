@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>기분이재즈 주차 지도</title>
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<style>
+  :root { --bg:#111; --panel:#1c1c1e; --text:#f2f2f2; --muted:#9a9a9a; --closed:#22c55e; --open:#ef4444; --unknown:#8e8e93; --lot:#3b82f6; --accent:#f5b942; }
+  * { box-sizing:border-box; }
+  html, body { margin:0; height:100%; background:var(--bg); color:var(--text); font-family:-apple-system, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; }
+  body { display:flex; flex-direction:column; }
+  header { padding:10px 12px 8px; background:var(--panel); display:flex; flex-direction:column; gap:8px; }
+  .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  h1 { font-size:16px; margin:0; flex:1; }
+  button, input, select { font:inherit; font-size:15px; border-radius:10px; border:1px solid #3a3a3c; background:#2c2c2e; color:var(--text); padding:8px 10px; }
+  button.on { background:var(--accent); color:#111; border-color:var(--accent); font-weight:700; }
+  input[type=date] { flex:1; min-width:130px; }
+  select { flex:1; min-width:100px; }
+  .when { font-size:13px; color:var(--muted); }
+  .legend { display:flex; gap:12px; font-size:12px; color:var(--muted); flex-wrap:wrap; }
+  .dot { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:4px; vertical-align:middle; }
+  #map { flex:1; min-height:50vh; }
+  #list { max-height:34vh; overflow:auto; background:var(--panel); padding:4px 12px 16px; }
+  .item { padding:9px 0; border-bottom:1px solid #2c2c2e; display:flex; gap:10px; align-items:flex-start; }
+  .item b { font-size:15px; }
+  .item small { color:var(--muted); display:block; margin-top:2px; font-size:12px; line-height:1.4; }
+  .item .st { margin-left:auto; font-size:13px; font-weight:700; white-space:nowrap; }
+  .note { color:var(--muted); font-size:13px; padding:10px 0; line-height:1.5; }
+  .pin { width:18px; height:18px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 3px #000; }
+  .lotpin { width:22px; height:22px; border-radius:5px; background:var(--lot); color:#fff; font:700 14px/22px sans-serif; text-align:center; border:2px solid #fff; box-shadow:0 0 3px #000; }
+  .basepin { font-size:26px; line-height:26px; text-shadow:0 0 4px #000; }
+  .me { width:16px; height:16px; border-radius:50%; background:#0a84ff; border:3px solid #fff; box-shadow:0 0 0 6px rgba(10,132,255,.25); }
+  .leaflet-popup-content { font-size:14px; line-height:1.5; }
+  .leaflet-popup-content a { color:#0a6cff; }
+</style>
+</head>
+<body>
+<header>
+  <div class="row">
+    <h1>🎷 기분이재즈 주차 지도</h1>
+    <button id="btnMe" title="내 위치">📍 내 위치</button>
+  </div>
+  <div class="row">
+    <button id="btnNow" class="on">지금</button>
+    <input type="date" id="date">
+    <select id="time"></select>
+  </div>
+  <div class="row">
+    <span class="when" id="when"></span>
+  </div>
+  <div class="legend">
+    <span><span class="dot" style="background:var(--closed)"></span>문 닫음(앞에 주차 기회)</span>
+    <span><span class="dot" style="background:var(--open)"></span>영업 중</span>
+    <span><span class="dot" style="background:var(--unknown)"></span>시간 모름</span>
+    <span><span class="dot" style="background:var(--lot);border-radius:2px"></span>주차장</span>
+  </div>
+</header>
+<div id="map"></div>
+<div id="list"></div>
+
+<script src="vendor/leaflet/leaflet.js"></script>
+<script>
+const RADIUS = 1000; // 가게에서 1km
+const DAYS = ['sun','mon','tue','wed','thu','fri','sat'];
+const DAY_KO = ['일','월','화','수','목','금','토'];
+let DATA = null, map, layer, meMarker, meAccuracy, watchId = null, useNow = true, follow = false;
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad = n => String(n).padStart(2,'0');
+const toMin = hm => { const [h,m] = hm.split(':').map(Number); return h*60 + m; };
+const fmt = m => `${pad(Math.floor((m%1440)/60))}:${pad(m%60)}`;
+
+// 시간 고르기: 0시~23시 30분 단위, 저녁 시간이 먼저 보이도록
+function fillTimes() {
+  const sel = $('time'); const opts = [];
+  for (let m = 0; m < 1440; m += 30) opts.push(fmt(m));
+  sel.innerHTML = opts.map(t => `<option value="${t}">${t}</option>`).join('');
+}
+
+function chosenDate() {
+  if (useNow) return new Date();
+  const [y,mo,d] = $('date').value.split('-').map(Number);
+  const [h,mi] = $('time').value.split(':').map(Number);
+  return new Date(y, mo-1, d, h, mi);
+}
+
+// 그 시각에 hours 범위 안인지. 전날 밤을 넘겨 이어진 영업도 봄.
+// 결과: {state:'open'|'closed'|'unknown', closeAt, openAt}
+function statusAt(hours, when) {
+  if (!hours) return {state:'unknown'};
+  const day = when.getDay(), min = when.getHours()*60 + when.getMinutes();
+  const today = hours[DAYS[day]], yest = hours[DAYS[(day+6)%7]];
+  if (today === undefined && yest === undefined) return {state:'unknown'};
+  const ranges = r => (!r || r === '휴무') ? [] : String(r).split(',').map(s => s.trim().split('-').map(toMin));
+  // 어제 시작해서 오늘 새벽까지 이어지는 영업
+  for (const [a,b] of ranges(yest)) if (b <= a && min < b) return {state:'open', closeAt:b};
+  if (today === null || today === undefined) return {state:'unknown'};
+  for (const [a,b] of ranges(today)) {
+    const end = b <= a ? b + 1440 : b;
+    if (min >= a && min < end) return {state:'open', closeAt:end};
+  }
+  const later = ranges(today).map(([a]) => a).filter(a => a > min).sort((x,y)=>x-y)[0];
+  const lastClose = ranges(today).map(([a,b]) => b <= a ? null : b).filter(b => b !== null && b <= min).sort((x,y)=>y-x)[0];
+  return {state:'closed', openAt:later, closedSince:lastClose, dayOff: today === '휴무'};
+}
+
+function lotStatus(lot, when) {
+  const s = statusAt(lot.paid, when);
+  if (s.state === 'open') return {free:false, label:`유료 (${fmt(s.closeAt)}부터 무료)`};
+  if (s.state === 'closed' || lot.paid && lot.paid[DAYS[when.getDay()]] === null) return {free:true, label:'무료 시간'};
+  return {free:null, label:'요금 시간 모름'};
+}
+
+function hoursText(hours) {
+  if (!hours) return '영업시간 모름';
+  const order = [1,2,3,4,5,6,0];
+  return order.map(i => `${DAY_KO[i]} ${hours[DAYS[i]] ?? '모름'}`).join(' · ');
+}
+
+function navLink(name, lat, lng) {
+  return `https://map.kakao.com/link/to/${encodeURIComponent(name)},${lat},${lng}`;
+}
+
+const dist = (a, b) => map.distance([a.lat, a.lng], [b.lat, b.lng]);
+
+function render() {
+  if (!DATA) return;
+  const when = chosenDate();
+  $('when').textContent = `${when.getMonth()+1}월 ${when.getDate()}일 (${DAY_KO[when.getDay()]}) ${fmt(when.getHours()*60+when.getMinutes())} 기준` + (useNow ? ' · 지금' : '');
+  layer.clearLayers();
+  const base = DATA.base;
+  L.circle([base.lat, base.lng], {radius:RADIUS, color:'#f5b942', weight:1.5, fillOpacity:0.04, interactive:false}).addTo(layer);
+  L.marker([base.lat, base.lng], {icon:L.divIcon({className:'', html:'<div class="basepin">🎷</div>', iconSize:[26,26], iconAnchor:[13,13]}), zIndexOffset:1000})
+    .bindPopup(`<b>${esc(base.name)}</b><br>${esc(base.address)}${base.coordNote ? `<br><small>위치: ${esc(base.coordNote)}</small>` : ''}`).addTo(layer);
+
+  const rows = [];
+  for (const s of DATA.stores || []) {
+    if (s.lat == null || s.lng == null) continue;
+    const d = dist(base, s); if (d > RADIUS) continue;
+    const st = statusAt(s.hours, when);
+    const color = st.state === 'closed' ? 'var(--closed)' : st.state === 'open' ? 'var(--open)' : 'var(--unknown)';
+    let stLabel = st.state === 'closed' ? (st.dayOff ? '오늘 휴무' : st.closedSince != null ? `${fmt(st.closedSince)} 닫음` : '닫힘')
+                : st.state === 'open' ? `${fmt(st.closeAt)}까지 영업` : '시간 모름';
+    const front = s.parkingFront ? `가게 앞 주차: ${s.parkingFront}` : '';
+    const html = `<b>${esc(s.name)}</b> ${s.category ? `<small>${esc(s.category)}</small>` : ''}<br>
+      <b style="color:${color}">${esc(stLabel)}</b><br>
+      ${front ? esc(front) + '<br>' : ''}${s.note ? esc(s.note) + '<br>' : ''}
+      <small>${esc(hoursText(s.hours))}${s.hoursNote ? '<br>' + esc(s.hoursNote) : ''}</small><br>
+      <a href="${navLink(s.name, s.lat, s.lng)}" target="_blank" rel="noopener">카카오맵 길찾기</a>`;
+    L.marker([s.lat, s.lng], {icon:L.divIcon({className:'', html:`<div class="pin" style="background:${color}"></div>`, iconSize:[18,18], iconAnchor:[9,9]}), zIndexOffset: st.state === 'closed' ? 500 : 0})
+      .bindPopup(html).addTo(layer);
+    rows.push({d, rank: st.state === 'closed' ? 0 : st.state === 'unknown' ? 1 : 2, html:
+      `<div class="item" data-lat="${s.lat}" data-lng="${s.lng}"><span class="dot" style="background:${color};margin-top:5px"></span>
+       <div><b>${esc(s.name)}</b><small>${[Math.round(d)+'m', s.category, front].filter(Boolean).map(esc).join(' · ')}</small></div>
+       <span class="st" style="color:${color}">${esc(stLabel)}</span></div>`});
+  }
+  for (const lot of DATA.lots || []) {
+    const d = dist(base, lot);
+    const ls = lotStatus(lot, when);
+    const html = `<b>🅿️ ${esc(lot.name)}</b><br><b>${esc(ls.label)}</b><br>${esc(lot.free || '')}<br>
+      <small>${esc(lot.fee || '')}${lot.spaces ? ` · ${lot.spaces}면` : ''}<br>${esc(lot.address || '')}${lot.coordNote ? ` (위치 ${esc(lot.coordNote)})` : ''}</small><br>
+      <a href="${navLink(lot.name, lot.lat, lot.lng)}" target="_blank" rel="noopener">카카오맵 길찾기</a>${lot.source ? ` · <a href="${esc(lot.source)}" target="_blank" rel="noopener">출처</a>` : ''}`;
+    L.marker([lot.lat, lot.lng], {icon:L.divIcon({className:'', html:'<div class="lotpin">P</div>', iconSize:[22,22], iconAnchor:[11,11]}), zIndexOffset:800})
+      .bindPopup(html).addTo(layer);
+    rows.push({d, rank: ls.free ? -1 : 3, html:
+      `<div class="item" data-lat="${lot.lat}" data-lng="${lot.lng}"><span class="dot" style="background:var(--lot);border-radius:2px;margin-top:5px"></span>
+       <div><b>${esc(lot.name)}</b><small>${Math.round(d)}m · 주차장 ${lot.spaces ? lot.spaces + '면' : ''}</small></div>
+       <span class="st" style="color:${ls.free ? 'var(--closed)' : 'var(--muted)'}">${esc(ls.label)}</span></div>`});
+  }
+  rows.sort((a,b) => a.rank - b.rank || a.d - b.d);
+  const noStores = !(DATA.stores || []).length;
+  $('list').innerHTML = (noStores ? `<div class="note">아직 주변 가게 영업시간 자료가 없어요. 조사 결과가 들어오면 가게가 지도에 나타나요. 지금은 주차장만 보여요.</div>` : '')
+    + rows.map(r => r.html).join('')
+    + `<div class="note">초록 = 그 시각에 문 닫은 가게예요. 가게 앞에 세울 수 있는지는 현장 표지판·단속 안내를 꼭 확인하세요. 영업시간은 지도 정보 기준이라 실제와 다를 수 있어요. 공휴일은 따로 계산하지 않아요.<br>자료 기준일: ${esc(DATA.updatedAt || '')}</div>`;
+  document.querySelectorAll('.item').forEach(el => el.onclick = () => {
+    const ll = [Number(el.dataset.lat), Number(el.dataset.lng)];
+    map.setView(ll, 18);
+    layer.eachLayer(l => { if (l.getLatLng && l.getPopup && l.getLatLng().equals(ll)) l.openPopup(); });
+  });
+}
+
+function setNow(on) {
+  useNow = on;
+  $('btnNow').classList.toggle('on', on);
+  if (on) {
+    const n = new Date();
+    $('date').value = `${n.getFullYear()}-${pad(n.getMonth()+1)}-${pad(n.getDate())}`;
+    $('time').value = fmt(n.getHours()*60 + Math.floor(n.getMinutes()/30)*30);
+  }
+  render();
+}
+
+function locate() {
+  if (!navigator.geolocation) { alert('이 브라우저는 위치를 지원하지 않아요.'); return; }
+  follow = true;
+  $('btnMe').classList.add('on');
+  if (watchId !== null) { if (meMarker) map.setView(meMarker.getLatLng(), 17); return; }
+  watchId = navigator.geolocation.watchPosition(p => {
+    const ll = [p.coords.latitude, p.coords.longitude];
+    if (!meMarker) {
+      meMarker = L.marker(ll, {icon:L.divIcon({className:'', html:'<div class="me"></div>', iconSize:[16,16], iconAnchor:[8,8]}), zIndexOffset:2000}).bindPopup('내 위치').addTo(map);
+      meAccuracy = L.circle(ll, {radius:p.coords.accuracy, color:'#0a84ff', weight:1, fillOpacity:0.08, interactive:false}).addTo(map);
+      map.setView(ll, 17);
+    } else {
+      meMarker.setLatLng(ll); meAccuracy.setLatLng(ll).setRadius(p.coords.accuracy);
+      if (follow) map.panTo(ll);
+    }
+  }, e => {
+    alert(e.code === 1 ? '위치 권한이 꺼져 있어요. 휴대폰 설정에서 이 사이트의 위치 사용을 허용해 주세요.' : '위치를 찾지 못했어요. 잠시 뒤 다시 눌러 주세요.');
+    $('btnMe').classList.remove('on'); navigator.geolocation.clearWatch(watchId); watchId = null;
+  }, {enableHighAccuracy:true, maximumAge:5000, timeout:20000});
+}
+
+async function init() {
+  fillTimes();
+  map = L.map('map', {zoomControl:true});
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, subdomains:'abc', attribution:'© OpenStreetMap'}).addTo(map);
+  layer = L.layerGroup().addTo(map);
+  map.on('dragstart', () => { follow = false; $('btnMe').classList.remove('on'); });
+  try {
+    DATA = await (await fetch('stores.json', {cache:'no-cache'})).json();
+  } catch (e) {
+    $('list').innerHTML = '<div class="note">자료(stores.json)를 불러오지 못했어요. 새로고침해 주세요.</div>';
+    map.setView([36.3443, 127.3937], 15); return;
+  }
+  map.setView([DATA.base.lat, DATA.base.lng], 15);
+  $('btnNow').onclick = () => setNow(true);
+  $('date').onchange = $('time').onchange = () => setNow(false);
+  $('btnMe').onclick = locate;
+  setNow(true);
+  setInterval(() => { if (useNow) setNow(true); }, 60000);
+}
+init();
+</script>
+</body>
+</html>

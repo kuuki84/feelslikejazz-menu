@@ -29,6 +29,9 @@
   .item .st { margin-left:auto; font-size:13px; font-weight:700; white-space:nowrap; }
   .note { color:var(--muted); font-size:13px; padding:10px 0; line-height:1.5; }
   .pin { width:18px; height:18px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 3px #000; }
+  .pin.park { width:24px; height:24px; color:#fff; font:800 13px/20px sans-serif; text-align:center; }
+  .lotpin.free { background:var(--closed); width:28px; height:28px; font-size:17px; line-height:24px; }
+  .lotpin.paid { background:#636366; }
   .lotpin { width:22px; height:22px; border-radius:5px; background:var(--lot); color:#fff; font:700 14px/22px sans-serif; text-align:center; border:2px solid #fff; box-shadow:0 0 3px #000; }
   .basepin { font-size:26px; line-height:26px; text-shadow:0 0 4px #000; }
   .me { width:16px; height:16px; border-radius:50%; background:#0a84ff; border:3px solid #fff; box-shadow:0 0 0 6px rgba(10,132,255,.25); }
@@ -43,6 +46,10 @@
     <button id="btnMe" title="내 위치">📍 내 위치</button>
   </div>
   <div class="row">
+    <button id="btnFree">🅿️ 주차 가능만 보기</button>
+    <button id="btnBase">📌 가게 위치 정하기</button>
+  </div>
+  <div class="row">
     <button id="btnNow" class="on">지금</button>
     <input type="date" id="date">
     <select id="time"></select>
@@ -50,11 +57,13 @@
   <div class="row">
     <span class="when" id="when"></span>
   </div>
+  <div class="row"><b id="freeCount" style="color:var(--closed);font-size:14px"></b></div>
   <div class="legend">
     <span><span class="dot" style="background:var(--closed)"></span>문 닫음(앞에 주차 기회)</span>
     <span><span class="dot" style="background:var(--open)"></span>영업 중</span>
     <span><span class="dot" style="background:var(--unknown)"></span>시간 모름</span>
-    <span><span class="dot" style="background:var(--lot);border-radius:2px"></span>주차장</span>
+    <span><span class="dot" style="background:var(--closed);border-radius:2px"></span>주차장 무료</span>
+    <span><span class="dot" style="background:#636366;border-radius:2px"></span>주차장 유료</span>
   </div>
 </header>
 <div id="map"></div>
@@ -65,6 +74,7 @@
 const RADIUS = 1000; // 가게에서 1km
 const DAYS = ['sun','mon','tue','wed','thu','fri','sat'];
 const DAY_KO = ['일','월','화','수','목','금','토'];
+let onlyFree = false, BASE_KEY = 'parking.baseOverride';
 let DATA = null, map, layer, meMarker, meAccuracy, watchId = null, useNow = true, follow = false;
 
 const $ = id => document.getElementById(id);
@@ -136,11 +146,13 @@ function render() {
   L.marker([base.lat, base.lng], {icon:L.divIcon({className:'', html:'<div class="basepin">🎷</div>', iconSize:[26,26], iconAnchor:[13,13]}), zIndexOffset:1000})
     .bindPopup(`<b>${esc(base.name)}</b><br>${esc(base.address)}${base.coordNote ? `<br><small>위치: ${esc(base.coordNote)}</small>` : ''}`).addTo(layer);
 
-  const rows = [];
+  const rows = []; let freeStores = 0, freeLots = 0;
   for (const s of DATA.stores || []) {
     if (s.lat == null || s.lng == null) continue;
     const d = dist(base, s); if (d > RADIUS) continue;
     const st = statusAt(s.hours, when);
+    if (st.state === 'closed') freeStores++;
+    if (onlyFree && st.state !== 'closed') continue;
     const color = st.state === 'closed' ? 'var(--closed)' : st.state === 'open' ? 'var(--open)' : 'var(--unknown)';
     let stLabel = st.state === 'closed' ? (st.dayOff ? '오늘 휴무' : st.closedSince != null ? `${fmt(st.closedSince)} 닫음` : '닫힘')
                 : st.state === 'open' ? `${fmt(st.closeAt)}까지 영업` : '시간 모름';
@@ -150,7 +162,7 @@ function render() {
       ${front ? esc(front) + '<br>' : ''}${s.note ? esc(s.note) + '<br>' : ''}
       <small>${esc(hoursText(s.hours))}${s.hoursNote ? '<br>' + esc(s.hoursNote) : ''}</small><br>
       <a href="${navLink(s.name, s.lat, s.lng)}" target="_blank" rel="noopener">카카오맵 길찾기</a>`;
-    L.marker([s.lat, s.lng], {icon:L.divIcon({className:'', html:`<div class="pin" style="background:${color}"></div>`, iconSize:[18,18], iconAnchor:[9,9]}), zIndexOffset: st.state === 'closed' ? 500 : 0})
+    L.marker([s.lat, s.lng], {icon:L.divIcon({className:'', html: st.state === 'closed' ? `<div class="pin park" style="background:${color}">P</div>` : `<div class="pin" style="background:${color}"></div>`, iconSize: st.state === 'closed' ? [24,24] : [18,18], iconAnchor: st.state === 'closed' ? [12,12] : [9,9]}), zIndexOffset: st.state === 'closed' ? 500 : 0})
       .bindPopup(html).addTo(layer);
     rows.push({d, rank: st.state === 'closed' ? 0 : st.state === 'unknown' ? 1 : 2, html:
       `<div class="item" data-lat="${s.lat}" data-lng="${s.lng}"><span class="dot" style="background:${color};margin-top:5px"></span>
@@ -160,17 +172,20 @@ function render() {
   for (const lot of DATA.lots || []) {
     const d = dist(base, lot);
     const ls = lotStatus(lot, when);
+    if (ls.free) freeLots++;
+    if (onlyFree && !ls.free) continue;
     const html = `<b>🅿️ ${esc(lot.name)}</b><br><b>${esc(ls.label)}</b><br>${esc(lot.free || '')}<br>
       <small>${esc(lot.fee || '')}${lot.spaces ? ` · ${lot.spaces}면` : ''}<br>${esc(lot.address || '')}${lot.coordNote ? ` (위치 ${esc(lot.coordNote)})` : ''}</small><br>
       <a href="${navLink(lot.name, lot.lat, lot.lng)}" target="_blank" rel="noopener">카카오맵 길찾기</a>${lot.source ? ` · <a href="${esc(lot.source)}" target="_blank" rel="noopener">출처</a>` : ''}`;
-    L.marker([lot.lat, lot.lng], {icon:L.divIcon({className:'', html:'<div class="lotpin">P</div>', iconSize:[22,22], iconAnchor:[11,11]}), zIndexOffset:800})
+    L.marker([lot.lat, lot.lng], {icon:L.divIcon({className:'', html:`<div class="lotpin ${ls.free ? 'free' : 'paid'}">P</div>`, iconSize: ls.free ? [28,28] : [22,22], iconAnchor: ls.free ? [14,14] : [11,11]}), zIndexOffset:800})
       .bindPopup(html).addTo(layer);
     rows.push({d, rank: ls.free ? -1 : 3, html:
-      `<div class="item" data-lat="${lot.lat}" data-lng="${lot.lng}"><span class="dot" style="background:var(--lot);border-radius:2px;margin-top:5px"></span>
+      `<div class="item" data-lat="${lot.lat}" data-lng="${lot.lng}"><span class="dot" style="background:${ls.free ? 'var(--closed)' : '#636366'};border-radius:2px;margin-top:5px"></span>
        <div><b>${esc(lot.name)}</b><small>${Math.round(d)}m · 주차장 ${lot.spaces ? lot.spaces + '면' : ''}</small></div>
        <span class="st" style="color:${ls.free ? 'var(--closed)' : 'var(--muted)'}">${esc(ls.label)}</span></div>`});
   }
   rows.sort((a,b) => a.rank - b.rank || a.d - b.d);
+  $('freeCount').textContent = `🅿️ ${useNow ? '지금' : '이 시각'} 주차 가능: 문 닫은 가게 ${freeStores}곳 · 무료 주차장 ${freeLots}곳`;
   const noStores = !(DATA.stores || []).length;
   $('list').innerHTML = (noStores ? `<div class="note">아직 주변 가게 영업시간 자료가 없어요. 조사 결과가 들어오면 가게가 지도에 나타나요. 지금은 주차장만 보여요.</div>` : '')
     + rows.map(r => r.html).join('')
@@ -214,6 +229,17 @@ function locate() {
   }, {enableHighAccuracy:true, maximumAge:5000, timeout:20000});
 }
 
+function setBase() {
+  if (!meMarker) { alert('먼저 「📍 내 위치」를 눌러 위치를 잡은 뒤, 가게 앞에서 다시 눌러 주세요.'); locate(); return; }
+  const ll = meMarker.getLatLng();
+  if (!confirm('지금 내 위치를 기분이재즈 위치로 정할까요?')) return;
+  const lat = Math.round(ll.lat * 1e6) / 1e6, lng = Math.round(ll.lng * 1e6) / 1e6;
+  try { localStorage.setItem(BASE_KEY, JSON.stringify({lat, lng})); } catch (e) {}
+  DATA.base = {...DATA.base, lat, lng, coordNote:'이 기기에서 정한 위치'};
+  render(); map.setView([lat, lng], 16);
+  prompt('가게 위치를 저장했어요. 다른 휴대폰에도 똑같이 나오게 하려면 아래 숫자를 복사해 Claude에게 보내 주세요.', `가게 좌표 ${lat}, ${lng}`);
+}
+
 async function init() {
   fillTimes();
   map = L.map('map', {zoomControl:true});
@@ -226,7 +252,13 @@ async function init() {
     $('list').innerHTML = '<div class="note">자료(stores.json)를 불러오지 못했어요. 새로고침해 주세요.</div>';
     map.setView([36.3443, 127.3937], 15); return;
   }
-  map.setView([DATA.base.lat, DATA.base.lng], 15);
+  try {
+    const o = JSON.parse(localStorage.getItem(BASE_KEY) || 'null');
+    if (o && typeof o.lat === 'number') DATA.base = {...DATA.base, lat:o.lat, lng:o.lng, coordNote:'이 기기에서 정한 위치'};
+  } catch (e) {}
+  map.setView([DATA.base.lat, DATA.base.lng], 16);
+  $('btnFree').onclick = () => { onlyFree = !onlyFree; $('btnFree').classList.toggle('on', onlyFree); render(); };
+  $('btnBase').onclick = setBase;
   $('btnNow').onclick = () => setNow(true);
   $('date').onchange = $('time').onchange = () => setNow(false);
   $('btnMe').onclick = locate;

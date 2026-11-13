@@ -33,6 +33,18 @@
   .lotpin.free { background:var(--closed); width:28px; height:28px; font-size:17px; line-height:24px; }
   .lotpin.paid { background:#636366; }
   .lotpin { width:22px; height:22px; border-radius:5px; background:var(--lot); color:#fff; font:700 14px/22px sans-serif; text-align:center; border:2px solid #fff; box-shadow:0 0 3px #000; }
+  .chips { display:flex; gap:6px; overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:2px; }
+  .chips button { flex:0 0 auto; padding:6px 10px; font-size:14px; line-height:1.2; }
+  .chips button small { display:block; font-size:11px; color:var(--muted); font-weight:400; }
+  .chips button.on small { color:#111; }
+  .chips button.today { border-color:var(--accent); }
+  .sec { padding:10px 0 4px; border-bottom:1px solid #2c2c2e; }
+  .sec h3 { margin:0 0 6px; font-size:14px; color:var(--accent); }
+  .tl { display:flex; gap:8px; padding:5px 4px; font-size:13px; line-height:1.45; cursor:pointer; }
+  .tl .t { width:44px; flex:0 0 auto; font-weight:700; }
+  .tl .n { width:58px; flex:0 0 auto; color:var(--closed); font-weight:700; }
+  .tl.sel { background:#2c2c2e; border-radius:8px; }
+  .off { color:#c084fc; }
   .basepin { font-size:26px; line-height:26px; text-shadow:0 0 4px #000; }
   .me { width:16px; height:16px; border-radius:50%; background:#0a84ff; border:3px solid #fff; box-shadow:0 0 0 6px rgba(10,132,255,.25); }
   .leaflet-popup-content { font-size:14px; line-height:1.5; }
@@ -48,11 +60,8 @@
   <div class="row">
     <button id="btnFree">🅿️ 주차 가능만 보기</button>
   </div>
-  <div class="row">
-    <button id="btnNow" class="on">지금</button>
-    <input type="date" id="date">
-    <select id="time"></select>
-  </div>
+  <div class="chips" id="dayChips"></div>
+  <div class="chips" id="timeChips"></div>
   <div class="row">
     <span class="when" id="when"></span>
   </div>
@@ -60,6 +69,7 @@
   <div class="legend">
     <span><span class="dot" style="background:var(--closed)"></span>문 닫음(앞에 주차 기회)</span>
     <span><span class="dot" style="background:var(--open)"></span>영업 중</span>
+    <span><span class="dot" style="background:#a855f7"></span>휴무</span>
     <span><span class="dot" style="background:var(--unknown)"></span>시간 모름</span>
     <span><span class="dot" style="background:var(--closed);border-radius:2px"></span>주차장 무료</span>
     <span><span class="dot" style="background:#636366;border-radius:2px"></span>주차장 유료</span>
@@ -82,19 +92,76 @@ const pad = n => String(n).padStart(2,'0');
 const toMin = hm => { const [h,m] = hm.split(':').map(Number); return h*60 + m; };
 const fmt = m => `${pad(Math.floor((m%1440)/60))}:${pad(m%60)}`;
 
-// 시간 고르기: 0시~23시 30분 단위, 저녁 시간이 먼저 보이도록
-function fillTimes() {
-  const sel = $('time'); const opts = [];
-  for (let m = 0; m < 1440; m += 30) opts.push(fmt(m));
-  sel.innerHTML = opts.map(t => `<option value="${t}">${t}</option>`).join('');
-}
+// 요일 칩(월~일)과 저녁 시각 칩(19:00~23:30, 30분 단위)
+const SLOTS = []; for (let m = 19*60; m <= 23*60+30; m += 30) SLOTS.push(m);
+let selDay = new Date().getDay(), selMin = 19*60;
 
 function chosenDate() {
   if (useNow) return new Date();
-  const [y,mo,d] = $('date').value.split('-').map(Number);
-  const [h,mi] = $('time').value.split(':').map(Number);
-  return new Date(y, mo-1, d, h, mi);
+  const n = new Date(), d = new Date(n.getFullYear(), n.getMonth(), n.getDate() + ((selDay - n.getDay() + 7) % 7));
+  d.setHours(Math.floor(selMin/60), selMin%60, 0, 0);
+  return d;
 }
+
+// 그 요일에 언제 문을 닫는지: {kind:'off'|'unknown'|'late'|'early'|'evening', close}
+function closeInfo(hours, day) {
+  if (!hours) return {kind:'unknown'};
+  const h = hours[DAYS[day]];
+  if (h === '휴무') return {kind:'off'};
+  if (h === null || h === undefined) return {kind:'unknown'};
+  let close = -1, late = false;
+  for (const part of String(h).split(',')) {
+    const [a,b] = part.trim().split('-').map(toMin);
+    if (b <= a) late = true; else close = Math.max(close, b);
+  }
+  if (late) return {kind:'late'};
+  if (close < 19*60) return {kind:'early', close};
+  return {kind:'evening', close};
+}
+
+function storesInRange() {
+  return (DATA.stores || []).filter(s => s.lat != null && s.lng != null && dist(DATA.base, s) <= RADIUS);
+}
+
+function renderChips() {
+  const today = new Date().getDay(), stores = storesInRange();
+  const order = [1,2,3,4,5,6,0];
+  $('dayChips').innerHTML = order.map(d => {
+    const off = stores.filter(s => closeInfo(s.hours, d).kind === 'off').length;
+    return `<button data-day="${d}" class="${!useNow && d === selDay ? 'on' : ''} ${d === today ? 'today' : ''}">${DAY_KO[d]}${d === today ? '(오늘)' : ''}<small>휴무 ${off}곳</small></button>`;
+  }).join('');
+  const day = useNow ? today : selDay;
+  const closedBy = m => stores.filter(s => { const c = closeInfo(s.hours, day); return c.kind === 'off' || c.kind === 'early' || (c.kind === 'evening' && c.close <= m); }).length;
+  $('timeChips').innerHTML = `<button id="btnNow" class="${useNow ? 'on' : ''}">지금<small>실시간</small></button>`
+    + SLOTS.map(m => `<button data-min="${m}" class="${!useNow && m === selMin ? 'on' : ''}">${fmt(m)}<small>닫음 ${closedBy(m)}곳</small></button>`).join('');
+  document.querySelectorAll('#dayChips button').forEach(b => b.onclick = () => { selDay = Number(b.dataset.day); useNow = false; render(); });
+  document.querySelectorAll('#timeChips button[data-min]').forEach(b => b.onclick = () => { selMin = Number(b.dataset.min); if (useNow) selDay = new Date().getDay(); useNow = false; render(); });
+  $('btnNow').onclick = () => setNow(true);
+  document.querySelectorAll('.chips button.on').forEach(b => b.scrollIntoView({block:'nearest', inline:'center'}));
+}
+
+// 목록 위 요약: ① 그날 쉬는 가게 ② 30분 단위로 새로 문 닫는 가게
+function summaryHtml(day) {
+  const stores = storesInRange(), nm = s => esc(s.name);
+  const by = k => stores.filter(s => closeInfo(s.hours, day).kind === k);
+  const off = by('off'), early = by('early'), late = by('late'), unk = by('unknown');
+  let cum = off.length + early.length;
+  const rows = SLOTS.map(m => {
+    const now = stores.filter(s => { const c = closeInfo(s.hours, day); return c.kind === 'evening' && c.close > m - 30 && c.close <= m; });
+    cum += now.length;
+    return `<div class="tl ${!useNow && m === selMin ? 'sel' : ''}" data-min="${m}"><span class="t">${fmt(m)}</span><span class="n">+${now.length} (${cum})</span><span>${now.length ? now.map(nm).join(', ') : '<span style="color:var(--muted)">-</span>'}</span></div>`;
+  }).join('');
+  const after = stores.filter(s => { const c = closeInfo(s.hours, day); return c.kind === 'evening' && c.close > SLOTS[SLOTS.length-1]; });
+  return `<div class="sec"><h3>${DAY_KO[day]}요일 쉬는 가게 ${off.length}곳</h3>
+      <div class="note off" style="padding:0 0 6px">${off.length ? off.map(nm).join(', ') : '없음'}</div>
+      ${early.length ? `<div class="note" style="padding:0 0 6px">19시 전에 닫음: ${early.map(s => `${nm(s)}(${fmt(closeInfo(s.hours, day).close)})`).join(', ')}</div>` : ''}</div>
+    <div class="sec"><h3>${DAY_KO[day]}요일 문 닫는 시각 <small style="color:var(--muted);font-weight:400">+새로 닫음 (누적, 휴무 포함)</small></h3>${rows}
+      ${after.length ? `<div class="note" style="padding:4px 0">23:30 뒤 닫음: ${after.map(nm).join(', ')}</div>` : ''}
+      ${late.length ? `<div class="note" style="padding:4px 0">새벽까지 영업(자리 안 남): ${late.map(nm).join(', ')}</div>` : ''}
+      ${unk.length ? `<div class="note" style="padding:4px 0">영업시간 모름: ${unk.map(nm).join(', ')}</div>` : ''}</div>
+    <div class="sec"><h3>${useNow ? '지금' : `${DAY_KO[day]}요일 ${fmt(selMin)}`} 기준 가게·주차장</h3></div>`;
+}
+
 
 // 그 시각에 hours 범위 안인지. 전날 밤을 넘겨 이어진 영업도 봄.
 // 결과: {state:'open'|'closed'|'unknown', closeAt, openAt}
@@ -118,7 +185,7 @@ function statusAt(hours, when) {
 
 function lotStatus(lot, when) {
   const s = statusAt(lot.paid, when);
-  if (s.state === 'open') return {free:false, label:`유료 (${fmt(s.closeAt)}부터 무료)`};
+  if (s.state === 'open') return {free:false, label: s.closeAt >= 1440 ? '유료' : `유료 (${fmt(s.closeAt)}부터 무료)`};
   if (s.state === 'closed' || lot.paid && lot.paid[DAYS[when.getDay()]] === null) return {free:true, label:'무료 시간'};
   return {free:null, label:'요금 시간 모름'};
 }
@@ -212,8 +279,8 @@ function render() {
     const st = statusAt(s.hours, when);
     if (st.state === 'closed') freeStores++;
     if (onlyFree && st.state !== 'closed') continue;
-    const color = st.state === 'closed' ? 'var(--closed)' : st.state === 'open' ? 'var(--open)' : 'var(--unknown)';
-    let stLabel = st.state === 'closed' ? (st.dayOff ? '오늘 휴무' : st.closedSince != null ? `${fmt(st.closedSince)} 닫음` : '닫힘')
+    const color = st.dayOff ? '#a855f7' : st.state === 'closed' ? 'var(--closed)' : st.state === 'open' ? 'var(--open)' : 'var(--unknown)';
+    let stLabel = st.state === 'closed' ? (st.dayOff ? '휴무' : st.closedSince != null ? `${fmt(st.closedSince)} 닫음` : '닫힘')
                 : st.state === 'open' ? `${fmt(st.closeAt)}까지 영업` : '시간 모름';
     const front = s.parkingFront ? `가게 앞 주차: ${s.parkingFront}` : '';
     const html = `<b>${esc(s.name)}</b> ${s.category ? `<small>${esc(s.category)}</small>` : ''}<br>
@@ -221,7 +288,7 @@ function render() {
       ${front ? esc(front) + '<br>' : ''}${s.note ? esc(s.note) + '<br>' : ''}
       <small>${esc(hoursText(s.hours))}${s.hoursNote ? '<br>' + esc(s.hoursNote) : ''}</small><br>
       <a href="${navLink(s.name, s.lat, s.lng)}" target="_blank" rel="noopener">카카오맵 길찾기</a>`;
-    map.marker([s.lat, s.lng], st.state === 'closed' ? `<div class="pin park" style="background:${color}">P</div>` : `<div class="pin" style="background:${color}"></div>`, st.state === 'closed' ? [24,24] : [18,18], st.state === 'closed' ? 500 : 0, html);
+    map.marker([s.lat, s.lng], st.state === 'closed' ? `<div class="pin park" style="background:${color}">${st.dayOff ? '휴' : 'P'}</div>` : `<div class="pin" style="background:${color}"></div>`, st.state === 'closed' ? [24,24] : [18,18], st.state === 'closed' ? 500 : 0, html);
     rows.push({d, rank: st.state === 'closed' ? 0 : st.state === 'unknown' ? 1 : 2, html:
       `<div class="item" data-lat="${s.lat}" data-lng="${s.lng}"><span class="dot" style="background:${color};margin-top:5px"></span>
        <div><b>${esc(s.name)}</b><small>${[Math.round(d)+'m', s.category, front].filter(Boolean).map(esc).join(' · ')}</small></div>
@@ -244,9 +311,11 @@ function render() {
   rows.sort((a,b) => a.rank - b.rank || a.d - b.d);
   $('freeCount').textContent = `🅿️ ${useNow ? '지금' : '이 시각'} 주차 가능: 문 닫은 가게 ${freeStores}곳 · 무료 주차장 ${freeLots}곳`;
   const noStores = !(DATA.stores || []).length;
-  $('list').innerHTML = (noStores ? `<div class="note">아직 주변 가게 영업시간 자료가 없어요. 조사 결과가 들어오면 가게가 지도에 나타나요. 지금은 주차장만 보여요.</div>` : '')
+  renderChips();
+  $('list').innerHTML = summaryHtml(useNow ? new Date().getDay() : selDay) + (noStores ? `<div class="note">아직 주변 가게 영업시간 자료가 없어요. 조사 결과가 들어오면 가게가 지도에 나타나요. 지금은 주차장만 보여요.</div>` : '')
     + rows.map(r => r.html).join('')
     + `<div class="note">초록 = 그 시각에 문 닫은 가게예요. 가게 앞에 세울 수 있는지는 현장 표지판·단속 안내를 꼭 확인하세요. 영업시간은 지도 정보 기준이라 실제와 다를 수 있어요. 공휴일은 따로 계산하지 않아요.<br>자료 기준일: ${esc(DATA.updatedAt || '')}</div>`;
+  document.querySelectorAll('.tl').forEach(el => el.onclick = () => { selMin = Number(el.dataset.min); if (useNow) selDay = new Date().getDay(); useNow = false; render(); });
   document.querySelectorAll('.item').forEach(el => el.onclick = () => {
     const ll = [Number(el.dataset.lat), Number(el.dataset.lng)];
     map.setView(ll, 18); map.openAt(ll);
@@ -255,12 +324,7 @@ function render() {
 
 function setNow(on) {
   useNow = on;
-  $('btnNow').classList.toggle('on', on);
-  if (on) {
-    const n = new Date();
-    $('date').value = `${n.getFullYear()}-${pad(n.getMonth()+1)}-${pad(n.getDate())}`;
-    $('time').value = fmt(n.getHours()*60 + Math.floor(n.getMinutes()/30)*30);
-  }
+  if (on) selDay = new Date().getDay();
   render();
 }
 
@@ -287,7 +351,6 @@ function locate() {
 }
 
 async function init() {
-  fillTimes();
   try {
     DATA = await (await fetch('stores.json', {cache:'no-cache'})).json();
   } catch (e) {
@@ -302,10 +365,8 @@ async function init() {
   if (!map) map = makeLeaflet();
   if (q.get('why') === 'naver-key') $('when').insertAdjacentHTML('afterend', '<span class="when" style="color:var(--open)">네이버 지도 열쇠가 안 맞아서 기본 지도로 보여요.</span>');
   map.onDragStart(() => { follow = false; $('btnMe').classList.remove('on'); });
-  map.setView([DATA.base.lat, DATA.base.lng], 16);
+  map.setView([DATA.base.lat, DATA.base.lng], 17);
   $('btnFree').onclick = () => { onlyFree = !onlyFree; $('btnFree').classList.toggle('on', onlyFree); render(); };
-  $('btnNow').onclick = () => setNow(true);
-  $('date').onchange = $('time').onchange = () => setNow(false);
   $('btnMe').onclick = locate;
   setNow(true);
   setInterval(() => { if (useNow) setNow(true); }, 60000);

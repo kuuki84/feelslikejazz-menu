@@ -1,7 +1,7 @@
 {
   "_설명": "가게 주차 지도 데이터. hours는 요일별 'HH:MM-HH:MM'(밤을 넘기면 '18:00-02:00'), 쉬는 날은 '휴무', 모르면 null. coordNote가 '추정'이면 위치가 정확하지 않음. naverClientId에 네이버 지도 Client ID를 넣으면 바탕 지도가 네이버로 바뀜(비우면 OpenStreetMap).",
-  "updatedAt": "2026-11-12",
-  "naverClientId": "",
+  "updatedAt": "2026-11-13",
+  "naverClientId": "23ju8a6h4u",
   "base": {
     "name": "기분이재즈",
     "address": "대전 서구 탄방동 1169",

@@ -1,6 +1,7 @@
 {
-  "_설명": "가게 주차 지도 데이터. hours는 요일별 'HH:MM-HH:MM'(밤을 넘기면 '18:00-02:00'), 쉬는 날은 '휴무', 모르면 null. coordNote가 '추정'이면 위치가 정확하지 않음.",
-  "updatedAt": "2026-11-12",
+  "_설명": "가게 주차 지도 데이터. hours는 요일별 'HH:MM-HH:MM'(밤을 넘기면 '18:00-02:00'), 쉬는 날은 '휴무', 모르면 null. coordNote가 '추정'이면 위치가 정확하지 않음. naverClientId에 네이버 지도 Client ID를 넣으면 바탕 지도가 네이버로 바뀜(비우면 OpenStreetMap).",
+  "updatedAt": "2026-11-13",
+  "naverClientId": "23ju8a6h4u",
   "base": {
     "name": "기분이재즈",
     "address": "대전 서구 탄방동 1169",
@@ -17,7 +18,15 @@
       "lng": 127.3837,
       "coordNote": "추정",
       "free": "평일 18:00~08:00, 주말·공휴일 무료",
-      "paid": { "mon": "08:00-18:00", "tue": "08:00-18:00", "wed": "08:00-18:00", "thu": "08:00-18:00", "fri": "08:00-18:00", "sat": null, "sun": null },
+      "paid": {
+        "mon": "08:00-18:00",
+        "tue": "08:00-18:00",
+        "wed": "08:00-18:00",
+        "thu": "08:00-18:00",
+        "fri": "08:00-18:00",
+        "sat": null,
+        "sun": null
+      },
       "spaces": 471,
       "fee": "첫 1시간 무료, 이후 15분마다 800원(유료 시간에만)",
       "source": "https://www.eshare.go.kr/UserPortal/Upv/UprResrcFacl/index.do?rsrc_no=BA10A0007612"
@@ -29,7 +38,15 @@
       "lng": 127.3905,
       "coordNote": "추정",
       "free": "평일 22:00~08:00, 주말·공휴일 무료",
-      "paid": { "mon": "08:00-22:00", "tue": "08:00-22:00", "wed": "08:00-22:00", "thu": "08:00-22:00", "fri": "08:00-22:00", "sat": null, "sun": null },
+      "paid": {
+        "mon": "08:00-22:00",
+        "tue": "08:00-22:00",
+        "wed": "08:00-22:00",
+        "thu": "08:00-22:00",
+        "fri": "08:00-22:00",
+        "sat": null,
+        "sun": null
+      },
       "spaces": 160,
       "fee": "첫 10분 400원, 이후 10분마다 300원(2시간 넘으면 600원), 하루 최대 12,000원",
       "source": "https://www.eshare.go.kr/UserPortal/Upv/UprResrcExpr/index.do?rsrc_no=CJ14S0939537"
@@ -41,7 +58,15 @@
       "lng": 127.3958,
       "coordNote": "추정",
       "free": "평일 18:00~09:00, 주말·공휴일 무료 개방(5대)",
-      "paid": { "mon": "09:00-18:00", "tue": "09:00-18:00", "wed": "09:00-18:00", "thu": "09:00-18:00", "fri": "09:00-18:00", "sat": null, "sun": null },
+      "paid": {
+        "mon": "09:00-18:00",
+        "tue": "09:00-18:00",
+        "wed": "09:00-18:00",
+        "thu": "09:00-18:00",
+        "fri": "09:00-18:00",
+        "sat": null,
+        "sun": null
+      },
       "spaces": 5,
       "fee": "무료(낮에는 민원인 우선)",
       "source": "https://www.eshare.go.kr/UserPortal/Upv/UprResrcExpr/index.do?rsrc_no=BA10A0007630"

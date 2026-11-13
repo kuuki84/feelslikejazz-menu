@@ -44,7 +44,7 @@
   .tl .t { width:44px; flex:0 0 auto; font-weight:700; }
   .tl .n { width:58px; flex:0 0 auto; color:var(--closed); font-weight:700; }
   .tl.sel { background:#2c2c2e; border-radius:8px; }
-  .off { color:#c084fc; }
+  .off { color:#4ade80; }
   .basepin { font-size:26px; line-height:26px; text-shadow:0 0 4px #000; }
   .me { width:16px; height:16px; border-radius:50%; background:#0a84ff; border:3px solid #fff; box-shadow:0 0 0 6px rgba(10,132,255,.25); }
   .leaflet-popup-content { font-size:14px; line-height:1.5; }
@@ -67,9 +67,12 @@
   </div>
   <div class="row"><b id="freeCount" style="color:var(--closed);font-size:14px"></b></div>
   <div class="legend">
-    <span><span class="dot" style="background:var(--closed)"></span>문 닫음(앞에 주차 기회)</span>
-    <span><span class="dot" style="background:var(--open)"></span>영업 중</span>
-    <span><span class="dot" style="background:#a855f7"></span>휴무</span>
+    <span style="color:var(--text)">주차</span>
+    <span><span class="dot" style="background:#ef4444"></span>불가(영업 중)</span>
+    <span><span class="dot" style="background:#f97316"></span>1시간 안 마감</span>
+    <span><span class="dot" style="background:#eab308"></span>30분 안 마감</span>
+    <span><span class="dot" style="background:#22c55e"></span>마감 후 가능</span>
+    <span><span class="dot" style="background:#15803d"></span>휴무·종일 가능</span>
     <span><span class="dot" style="background:var(--unknown)"></span>시간 모름</span>
     <span><span class="dot" style="background:var(--closed);border-radius:2px"></span>주차장 무료</span>
     <span><span class="dot" style="background:#636366;border-radius:2px"></span>주차장 유료</span>
@@ -212,7 +215,7 @@ function makeLeaflet() {
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, subdomains:'abc', attribution:'© OpenStreetMap'}).addTo(m);
   const group = L.layerGroup().addTo(m); const popups = [];
   return {
-    setView: (ll, z) => m.setView(ll, z), panTo: ll => m.panTo(ll),
+    setView: (ll, z) => { m.invalidateSize(); m.setView(ll, z); }, panTo: ll => m.panTo(ll),
     onDragStart: cb => m.on('dragstart', cb),
     clear: () => { group.clearLayers(); popups.length = 0; },
     circle: (ll, radius, o, keep) => { const c = L.circle(ll, {radius, color:o.color, weight:o.weight, fillOpacity:o.fillOpacity, interactive:false}).addTo(keep ? m : group);
@@ -279,17 +282,21 @@ function render() {
     const st = statusAt(s.hours, when);
     if (st.state === 'closed') freeStores++;
     if (onlyFree && st.state !== 'closed') continue;
-    const color = st.dayOff ? '#a855f7' : st.state === 'closed' ? 'var(--closed)' : st.state === 'open' ? 'var(--open)' : 'var(--unknown)';
+    // 주차 가능 단계: 빨강(영업 중) → 주황(1시간 안 마감) → 노랑(30분 안) → 초록(마감 후) → 진초록(휴무)
+    const nowMin = when.getHours()*60 + when.getMinutes();
+    const left = st.state === 'open' ? st.closeAt - nowMin : null;
+    const level = st.state === 'unknown' ? -1 : st.dayOff ? 5 : st.state === 'closed' ? 4 : left <= 30 ? 3 : left <= 60 ? 2 : 1;
+    const color = ({'-1':'var(--unknown)', 1:'#ef4444', 2:'#f97316', 3:'#eab308', 4:'#22c55e', 5:'#15803d'})[level];
     let stLabel = st.state === 'closed' ? (st.dayOff ? '휴무' : st.closedSince != null ? `${fmt(st.closedSince)} 닫음` : '닫힘')
-                : st.state === 'open' ? `${fmt(st.closeAt)}까지 영업` : '시간 모름';
+                : st.state === 'open' ? (level >= 2 ? `${fmt(st.closeAt)} 마감 (${left}분 뒤)` : `${fmt(st.closeAt)}까지 영업`) : '시간 모름';
     const front = s.parkingFront ? `가게 앞 주차: ${s.parkingFront}` : '';
     const html = `<b>${esc(s.name)}</b> ${s.category ? `<small>${esc(s.category)}</small>` : ''}<br>
       <b style="color:${color}">${esc(stLabel)}</b><br>
       ${front ? esc(front) + '<br>' : ''}${s.note ? esc(s.note) + '<br>' : ''}
       <small>${esc(hoursText(s.hours))}${s.hoursNote ? '<br>' + esc(s.hoursNote) : ''}</small><br>
       <a href="${navLink(s.name, s.lat, s.lng)}" target="_blank" rel="noopener">카카오맵 길찾기</a>`;
-    map.marker([s.lat, s.lng], st.state === 'closed' ? `<div class="pin park" style="background:${color}">${st.dayOff ? '휴' : 'P'}</div>` : `<div class="pin" style="background:${color}"></div>`, st.state === 'closed' ? [24,24] : [18,18], st.state === 'closed' ? 500 : 0, html);
-    rows.push({d, rank: st.state === 'closed' ? 0 : st.state === 'unknown' ? 1 : 2, html:
+    map.marker([s.lat, s.lng], level >= 4 ? `<div class="pin park" style="background:${color}">${st.dayOff ? '휴' : 'P'}</div>` : `<div class="pin" style="background:${color}"></div>`, level >= 4 ? [24,24] : [18,18], level * 100, html);
+    rows.push({d, rank: level === -1 ? 7 : 6 - level, html:
       `<div class="item" data-lat="${s.lat}" data-lng="${s.lng}"><span class="dot" style="background:${color};margin-top:5px"></span>
        <div><b>${esc(s.name)}</b><small>${[Math.round(d)+'m', s.category, front].filter(Boolean).map(esc).join(' · ')}</small></div>
        <span class="st" style="color:${color}">${esc(stLabel)}</span></div>`});
@@ -303,7 +310,7 @@ function render() {
       <small>${esc(lot.fee || '')}${lot.spaces ? ` · ${lot.spaces}면` : ''}<br>${esc(lot.address || '')}${lot.coordNote ? ` (위치 ${esc(lot.coordNote)})` : ''}</small><br>
       <a href="${navLink(lot.name, lot.lat, lot.lng)}" target="_blank" rel="noopener">카카오맵 길찾기</a>${lot.source ? ` · <a href="${esc(lot.source)}" target="_blank" rel="noopener">출처</a>` : ''}`;
     map.marker([lot.lat, lot.lng], `<div class="lotpin ${ls.free ? 'free' : 'paid'}">P</div>`, ls.free ? [28,28] : [22,22], 800, html);
-    rows.push({d, rank: ls.free ? -1 : 3, html:
+    rows.push({d, rank: ls.free ? -1 : 8, html:
       `<div class="item" data-lat="${lot.lat}" data-lng="${lot.lng}"><span class="dot" style="background:${ls.free ? 'var(--closed)' : '#636366'};border-radius:2px;margin-top:5px"></span>
        <div><b>${esc(lot.name)}</b><small>${Math.round(d)}m · 주차장 ${lot.spaces ? lot.spaces + '면' : ''}</small></div>
        <span class="st" style="color:${ls.free ? 'var(--closed)' : 'var(--muted)'}">${esc(ls.label)}</span></div>`});
@@ -369,6 +376,7 @@ async function init() {
   $('btnFree').onclick = () => { onlyFree = !onlyFree; $('btnFree').classList.toggle('on', onlyFree); render(); };
   $('btnMe').onclick = locate;
   setNow(true);
+  setTimeout(() => map.setView([DATA.base.lat, DATA.base.lng], 17), 50);
   setInterval(() => { if (useNow) setNow(true); }, 60000);
 }
 init();

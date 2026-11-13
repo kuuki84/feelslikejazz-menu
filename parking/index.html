@@ -47,7 +47,6 @@
   </div>
   <div class="row">
     <button id="btnFree">🅿️ 주차 가능만 보기</button>
-    <button id="btnBase">📌 가게 위치 정하기</button>
   </div>
   <div class="row">
     <button id="btnNow" class="on">지금</button>
@@ -287,16 +286,6 @@ function locate() {
   }, {enableHighAccuracy:true, maximumAge:5000, timeout:20000});
 }
 
-function setBase() {
-  if (!mePos) { alert('먼저 「📍 내 위치」를 눌러 위치를 잡은 뒤, 가게 앞에서 다시 눌러 주세요.'); locate(); return; }
-  if (!confirm('지금 내 위치를 기분이재즈 위치로 정할까요?')) return;
-  const lat = Math.round(mePos[0] * 1e6) / 1e6, lng = Math.round(mePos[1] * 1e6) / 1e6;
-  try { localStorage.setItem(BASE_KEY, JSON.stringify({lat, lng})); } catch (e) {}
-  DATA.base = {...DATA.base, lat, lng, coordNote:'이 기기에서 정한 위치'};
-  render(); map.setView([lat, lng], 16);
-  prompt('가게 위치를 저장했어요. 다른 휴대폰에도 똑같이 나오게 하려면 아래 숫자를 복사해 Claude에게 보내 주세요.', `가게 좌표 ${lat}, ${lng}`);
-}
-
 async function init() {
   fillTimes();
   try {
@@ -304,10 +293,8 @@ async function init() {
   } catch (e) {
     $('list').innerHTML = '<div class="note">자료(stores.json)를 불러오지 못했어요. 새로고침해 주세요.</div>'; return;
   }
-  try {
-    const o = JSON.parse(localStorage.getItem(BASE_KEY) || 'null');
-    if (o && typeof o.lat === 'number') DATA.base = {...DATA.base, lat:o.lat, lng:o.lng, coordNote:'이 기기에서 정한 위치'};
-  } catch (e) {}
+  // 가게 위치는 stores.json의 base(탄방로7번길 139)로 고정. 예전에 기기에 저장한 위치는 지움
+  try { localStorage.removeItem(BASE_KEY); } catch (e) {}
   const q = new URLSearchParams(location.search);
   if (DATA.naverClientId && q.get('map') !== 'osm') {
     try { await loadNaver(DATA.naverClientId); map = makeNaver(); } catch (e) { map = null; }
@@ -317,7 +304,6 @@ async function init() {
   map.onDragStart(() => { follow = false; $('btnMe').classList.remove('on'); });
   map.setView([DATA.base.lat, DATA.base.lng], 16);
   $('btnFree').onclick = () => { onlyFree = !onlyFree; $('btnFree').classList.toggle('on', onlyFree); render(); };
-  $('btnBase').onclick = setBase;
   $('btnNow').onclick = () => setNow(true);
   $('date').onchange = $('time').onchange = () => setNow(false);
   $('btnMe').onclick = locate;

@@ -58,6 +58,37 @@
   footer{text-align:center;color:var(--sub);font-size:12px;padding:28px 16px 44px;line-height:1.9}
   footer .brand{letter-spacing:.2em;color:var(--navy);font-size:11px}
   footer a{color:var(--gold);font-weight:700;text-decoration:none}
+  .qty{display:flex;align-items:center;justify-content:flex-end;gap:6px;margin-top:6px}
+  .qty button{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--navy);font-size:17px;line-height:1;cursor:pointer}
+  .qty button.plus{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .qty span{min-width:18px;text-align:center;font-weight:700;font-size:15px}
+  .qty .size{font-size:12px;color:var(--sub);margin-right:2px}
+  .bar{position:fixed;left:0;right:0;bottom:0;z-index:20;padding:10px 16px calc(10px + env(safe-area-inset-bottom));
+    background:rgba(246,243,237,.97);border-top:1px solid var(--line);display:none}
+  .bar.show{display:block}
+  .bar button{width:100%;max-width:608px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;
+    background:var(--navy);color:#fff;border:0;border-radius:10px;padding:14px 18px;font-size:16px;font-weight:700;font-family:inherit;cursor:pointer}
+  body.has-bar footer{padding-bottom:110px}
+  .sheet-bg{position:fixed;inset:0;background:rgba(16,42,67,.45);z-index:30;display:none}
+  .sheet-bg.show{display:block}
+  .sheet{position:fixed;left:0;right:0;bottom:0;z-index:31;background:var(--bg);border-radius:16px 16px 0 0;
+    max-height:88vh;overflow-y:auto;padding:20px 16px calc(20px + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .25s}
+  .sheet.show{transform:none}
+  .sheet-in{max-width:608px;margin:0 auto}
+  .pay{border-radius:10px;padding:16px;margin-bottom:16px;line-height:1.6}
+  .pay.self{background:#e8f0e6;border:1px solid #c5d8c1}
+  .pay.post{background:#f6ead6;border:1px solid #e4cfa6}
+  .pay h3{font-size:18px;margin-bottom:6px}
+  .pay ol{padding-left:20px;font-size:14px}
+  .pay .why{font-size:12px;color:var(--sub);margin-top:6px}
+  .olist{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:4px 14px;margin-bottom:12px}
+  .olist div{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line);font-size:16px}
+  .olist div:last-child{border-bottom:0;font-weight:700}
+  .tbl{display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:14px}
+  .tbl input{width:80px;padding:8px;border:1px solid var(--line);border-radius:6px;font-size:16px;font-family:inherit}
+  .sheet .row{display:flex;gap:8px}
+  .sheet .row button{flex:1;padding:13px;border-radius:10px;font-size:15px;font-family:inherit;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--navy)}
+  .sheet .row button.main{background:var(--navy);color:#fff;border-color:var(--navy)}
 </style>
 </head>
 <body>
@@ -97,29 +128,37 @@
   <a href="https://instagram.com/feelslike_jazz" target="_blank" rel="noopener">Instagram @feelslike_jazz</a>
 </footer>
 
+<div class="bar" id="bar"><button id="openSheet"><span id="barCount"></span><span>주문 확인 ›</span></button></div>
+<div class="sheet-bg" id="sheetBg"></div>
+<div class="sheet" id="sheet" role="dialog" aria-label="주문 확인"><div class="sheet-in" id="sheetIn"></div></div>
+
 <script>
 /* =========================================================
    ★ 메뉴 수정은 여기만 고치면 됩니다 ★
    - name: 이름 / sub: 이름 옆 작은 글씨 / kind: 이름 위 분류
    - desc: 설명 / prices: [["용량", 가격], ...] (용량 없으면 "")
    - old: 할인 전 가격(없으면 지우기)
+   - pay:"staff" 인 칸은 직원 주문(후불) 품목, beer:true 는 맥주
    ========================================================= */
+/* ★ 결제 안내 기준: 맥주를 이 수 이상 고르면 후불(직원 주문)로 안내 */
+const POSTPAY_BEER_MIN = 5;
+/* ========================================================= */
 const MENU = [
   { id:"self", tab:"셀프 5,000원", en:"SELF SERVICE", title:"맥주 · 음료 · 안주 패키지",
     note:"직접 가져가신 뒤 단말기에서 먼저 셀프결제해 주세요.",
     items:[
-      { name:"모든 맥주", prices:[["",5000]] },
+      { name:"모든 맥주", beer:true, prices:[["",5000]] },
       { name:"모든 음료", prices:[["",5000]] },
       { name:"안주 패키지", desc:"기본안주와 별도인 유료 상품", prices:[["",5000]] },
     ],
     tip:"기본안주는 무료 · 셀프 · 무제한 제공됩니다." },
-  { id:"special", tab:"이번 달 특별안주", en:"SPECIAL", title:"이번 달 특별안주",
+  { id:"special", tab:"이번 달 특별안주", en:"SPECIAL", title:"이번 달 특별안주", pay:"staff",
     note:"직원에게 주문해 주세요.",
     items:[
       { name:"나초", prices:[["",20000]] },
       { name:"피자", prices:[["",20000]] },
     ]},
-  { id:"wine", tab:"와인", en:"WINE", title:"와인",
+  { id:"wine", tab:"와인", en:"WINE", title:"와인", pay:"staff",
     note:"직원에게 주문해 주세요 · 1병 기준",
     items:[
       { kind:"레드와인 · 칠레", name:"카시예로 델 디아블로", sub:"리제르바 카베르네 소비뇽",
@@ -127,7 +166,7 @@ const MENU = [
       { kind:"화이트와인 · 이탈리아", name:"칸티 모스카토 다스티",
         desc:"달콤한 과일·꽃 향, 가벼운 탄산의 화이트 와인", prices:[["750mL",50000]] },
     ]},
-  { id:"bottle", tab:"위스키 · 보틀", en:"BOTTLE SELECTION", title:"위스키 · 보드카 · 데킬라",
+  { id:"bottle", tab:"위스키 · 보틀", en:"BOTTLE SELECTION", title:"위스키 · 보드카 · 데킬라", pay:"staff",
     note:"직원에게 주문해 주세요 · 1병 기준",
     items:[
       { kind:"위스키 · 블렌디드", name:"발렌타인 17년",
@@ -160,12 +199,57 @@ document.getElementById('menu').innerHTML = MENU.map(c=>`
         </div>
         <div class="prices">
           ${it.old?`<span class="old">${won(it.old)}</span>`:''}
-          ${it.prices.map(([s,p])=>`<div class="price">${s?`<span class="size">${esc(s)}</span>`:''}${won(p)}</div>`).join('')}
+          ${it.prices.map(([s,p],pi)=>`<div class="price">${s?`<span class="size">${esc(s)}</span>`:''}${won(p)}</div>
+          <div class="qty" data-k="${c.id}|${c.items.indexOf(it)}|${pi}">${s?`<span class="size">${esc(s)}</span>`:''}<button class="minus" aria-label="빼기">−</button><span>0</span><button class="plus" aria-label="담기">+</button></div>`).join('')}
         </div>
       </div>`).join('')}
     </div>
     ${c.tip?`<p class="tip">${esc(c.tip)}</p>`:''}
   </section>`).join('');
+
+/* ---------- 주문 담기 + 결제 방법 안내 ---------- */
+const cart={};
+function itemOf(k){const [cid,ii,pi]=k.split('|');const c=MENU.find(x=>x.id===cid);const it=c.items[+ii];const [size,price]=it.prices[+pi];
+  return {c,it,size,price,label:it.name+(size?' '+size:'')};}
+function lines(){return Object.entries(cart).filter(([,n])=>n>0).map(([k,n])=>({k,n,...itemOf(k)}));}
+function decide(ls){
+  const beer=ls.filter(l=>l.it.beer).reduce((a,l)=>a+l.n,0);
+  const staff=ls.filter(l=>l.c.pay==='staff');
+  const why=[];
+  if(beer>=POSTPAY_BEER_MIN) why.push(`맥주 ${beer}병 (${POSTPAY_BEER_MIN}병 이상)`);
+  if(staff.length) why.push(staff.map(l=>l.it.name).filter((v,i,a)=>a.indexOf(v)===i).join(', '));
+  return {post:why.length>0, why};
+}
+function refresh(){
+  document.querySelectorAll('.qty').forEach(q=>{q.querySelector('span:not(.size)').textContent=cart[q.dataset.k]||0;});
+  const ls=lines(); const n=ls.reduce((a,l)=>a+l.n,0); const sum=ls.reduce((a,l)=>a+l.n*l.price,0);
+  document.getElementById('bar').classList.toggle('show',n>0); document.body.classList.toggle('has-bar',n>0);
+  document.getElementById('barCount').textContent=`${n}개 · ${won(sum)}`;
+}
+document.getElementById('menu').addEventListener('click',e=>{
+  const b=e.target.closest('.qty button'); if(!b) return;
+  const k=b.parentElement.dataset.k; const v=(cart[k]||0)+(b.classList.contains('plus')?1:-1);
+  cart[k]=Math.max(0,Math.min(99,v)); refresh();
+});
+function showSheet(on){['sheet','sheetBg'].forEach(id=>document.getElementById(id).classList.toggle('show',on));}
+document.getElementById('sheetBg').onclick=()=>showSheet(false);
+document.getElementById('openSheet').onclick=()=>{
+  const ls=lines(); if(!ls.length) return;
+  const sum=ls.reduce((a,l)=>a+l.n*l.price,0); const cnt=ls.reduce((a,l)=>a+l.n,0); const d=decide(ls);
+  const list=`<div class="olist">${ls.map(l=>`<div><span>${esc(l.label)} × ${l.n}</span><span>${won(l.n*l.price)}</span></div>`).join('')}<div><span>합계</span><span>${won(sum)}</span></div></div>`;
+  const pay=d.post?`<div class="pay post"><h3>후불결제 · 직원 주문</h3><ol>
+      <li>직원을 불러 <b>이 화면을 보여주세요.</b></li><li>주문하신 것은 자리로 가져다 드려요.</li><li>결제는 <b>나가실 때 한 번에</b> 해 주세요.</li></ol>
+      <p class="why">후불로 안내하는 이유: ${esc(d.why.join(' · '))}</p></div>
+      <label class="tbl">테이블 번호 <input id="tblNo" inputmode="numeric" placeholder="예: 3"></label>`
+    :`<div class="pay self"><h3>셀프결제</h3><ol>
+      <li>냉장고·안주 코너에서 <b>직접 가져가세요.</b></li><li>단말기에서 <b>${cnt}개, ${won(sum)}</b>을 결제해 주세요.</li><li>더 드실 때도 같은 방법으로 결제해 주세요.</li></ol>
+      <p class="why">결제가 어려우시면 편하게 직원을 불러주세요.</p></div>`;
+  document.getElementById('sheetIn').innerHTML=pay+list+`<div class="row"><button id="clr">다시 고르기</button><button class="main" id="cls">확인</button></div>`;
+  document.getElementById('cls').onclick=()=>showSheet(false);
+  document.getElementById('clr').onclick=()=>{for(const k in cart) cart[k]=0; refresh(); showSheet(false);};
+  showSheet(true);
+};
+refresh();
 
 const links=[...document.querySelectorAll('.tabs a')];
 const secs=[...document.querySelectorAll('section')];

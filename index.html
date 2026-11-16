@@ -87,6 +87,9 @@
   .tbl{display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:14px}
   .tbl input{width:80px;padding:8px;border:1px solid var(--line);border-radius:6px;font-size:16px;font-family:inherit}
   .sheet .row{display:flex;gap:8px}
+  .omsg{font-size:14px;margin:0 0 12px;padding:10px 12px;border-radius:8px;background:#e8f0e6}
+  .omsg.bad{background:#fbe3e0;color:#8a1c12}
+  .sheet .row button:disabled{opacity:.6}
   .sheet .row button{flex:1;padding:13px;border-radius:10px;font-size:15px;font-family:inherit;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--navy)}
   .sheet .row button.main{background:var(--navy);color:#fff;border-color:var(--navy)}
 </style>
@@ -142,6 +145,8 @@
    ========================================================= */
 /* ★ 결제 안내 기준: 맥주를 이 수 이상 고르면 후불(직원 주문)로 안내 */
 const POSTPAY_BEER_MIN = 5;
+/* ★ 후불 주문을 보내는 곳 (가게 아이맥). 비워 두면 「주문 보내기」 없이 직원 호출 안내만 나와요 */
+const ORDER_URL = "https://flj-imac.tail647679.ts.net/order-api/orders";
 /* ========================================================= */
 const MENU = [
   { id:"self", tab:"셀프 5,000원", en:"SELF SERVICE", title:"맥주 · 음료 · 안주 패키지",
@@ -238,18 +243,45 @@ document.getElementById('openSheet').onclick=()=>{
   const sum=ls.reduce((a,l)=>a+l.n*l.price,0); const cnt=ls.reduce((a,l)=>a+l.n,0); const d=decide(ls);
   const list=`<div class="olist">${ls.map(l=>`<div><span>${esc(l.label)} × ${l.n}</span><span>${won(l.n*l.price)}</span></div>`).join('')}<div><span>합계</span><span>${won(sum)}</span></div></div>`;
   const pay=d.post?`<div class="pay post"><h3>후불결제 · 직원 주문</h3><ol>
-      <li>직원을 불러 <b>이 화면을 보여주세요.</b></li><li>주문하신 것은 자리로 가져다 드려요.</li><li>결제는 <b>나가실 때 한 번에</b> 해 주세요.</li></ol>
+      ${ORDER_URL?`<li>테이블 번호를 적고 <b>「주문 보내기」</b>를 눌러 주세요.</li>`:`<li>직원을 불러 <b>이 화면을 보여주세요.</b></li>`}<li>주문하신 것은 자리로 가져다 드려요.</li><li>결제는 <b>나가실 때 한 번에</b> 해 주세요.</li></ol>
       <p class="why">후불로 안내하는 이유: ${esc(d.why.join(' · '))}</p></div>
       <label class="tbl">테이블 번호 <input id="tblNo" inputmode="numeric" placeholder="예: 3"></label>`
     :`<div class="pay self"><h3>셀프결제</h3><ol>
       <li>냉장고·안주 코너에서 <b>직접 가져가세요.</b></li><li>단말기에서 <b>${cnt}개, ${won(sum)}</b>을 결제해 주세요.</li><li>더 드실 때도 같은 방법으로 결제해 주세요.</li></ol>
       <p class="why">결제가 어려우시면 편하게 직원을 불러주세요.</p></div>`;
-  document.getElementById('sheetIn').innerHTML=pay+list+`<div class="row"><button id="clr">다시 고르기</button><button class="main" id="cls">확인</button></div>`;
-  document.getElementById('cls').onclick=()=>showSheet(false);
+  const send=d.post&&ORDER_URL;
+  document.getElementById('sheetIn').innerHTML=pay+list+`<p class="omsg" id="omsg" hidden></p><div class="row"><button id="clr">다시 고르기</button><button class="main" id="cls">${send?'주문 보내기':'확인'}</button></div>`;
+  document.getElementById('cls').onclick=send?()=>sendOrder(ls):()=>showSheet(false);
   document.getElementById('clr').onclick=()=>{for(const k in cart) cart[k]=0; refresh(); showSheet(false);};
   showSheet(true);
 };
 refresh();
+
+/* ---------- 후불 주문을 가게(아이맥)로 보내기 ---------- */
+let sending=false;
+async function sendOrder(ls){
+  if(sending) return;
+  const msg=document.getElementById('omsg'); const btn=document.getElementById('cls'); const tbl=document.getElementById('tblNo');
+  const say=(t,bad)=>{msg.hidden=false;msg.className='omsg'+(bad?' bad':'');msg.innerHTML=t;};
+  const table=(tbl.value||'').trim();
+  if(!table){say('테이블 번호를 적어 주세요.',true);tbl.focus();return;}
+  sending=true; btn.disabled=true; btn.textContent='보내는 중…';
+  try{
+    const r=await fetch(ORDER_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({table,pay:'post',items:ls.map(l=>({name:l.it.name,option:l.size,qty:l.n,price:l.price}))})});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok||!j.ok){const er=new Error(j.error||'');er.fromShop=true;throw er;}
+    for(const k in cart) cart[k]=0; refresh();
+    document.getElementById('sheetIn').innerHTML=`<div class="pay post"><h3>주문이 들어갔어요 (${esc(table)}번 테이블)</h3><ol>
+      <li>주문하신 것은 자리로 가져다 드려요.</li><li>결제는 <b>나가실 때 한 번에</b> 해 주세요.</li></ol>
+      <p class="why">주문 번호 #${esc(j.no)} · 혹시 오래 걸리면 편하게 직원을 불러주세요.</p></div>
+      <div class="row"><button class="main" id="cls">확인</button></div>`;
+    document.getElementById('cls').onclick=()=>showSheet(false);
+  }catch(e){
+    say((e.fromShop&&e.message?esc(e.message)+'<br>':'')+'주문이 전달되지 않았어요. <b>직원을 불러 이 화면을 보여주세요.</b>',true);
+    btn.disabled=false; btn.textContent='다시 보내기';
+  }finally{sending=false;}
+}
 
 const links=[...document.querySelectorAll('.tabs a')];
 const secs=[...document.querySelectorAll('section')];

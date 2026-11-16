@@ -31,7 +31,7 @@
   .pin { width:18px; height:18px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 3px #000; }
   .pin.park { width:24px; height:24px; color:#fff; font:800 13px/20px sans-serif; text-align:center; }
   .lotpin.free { background:var(--closed); width:28px; height:28px; font-size:17px; line-height:24px; }
-  .lotpin.paid { background:#636366; }
+  .lotpin.paid { background:#0a84ff; width:26px; height:26px; font-size:15px; line-height:22px; }
   .lotpin { width:22px; height:22px; border-radius:5px; background:var(--lot); color:#fff; font:700 14px/22px sans-serif; text-align:center; border:2px solid #fff; box-shadow:0 0 3px #000; }
   .basepin { font-size:26px; line-height:26px; text-shadow:0 0 4px #000; }
   .me { width:16px; height:16px; border-radius:50%; background:#0a84ff; border:3px solid #fff; box-shadow:0 0 0 6px rgba(10,132,255,.25); }
@@ -62,7 +62,7 @@
     <span><span class="dot" style="background:var(--open)"></span>영업 중</span>
     <span><span class="dot" style="background:var(--unknown)"></span>시간 모름</span>
     <span><span class="dot" style="background:var(--closed);border-radius:2px"></span>주차장 무료</span>
-    <span><span class="dot" style="background:#636366;border-radius:2px"></span>주차장 유료</span>
+    <span><span class="dot" style="background:#0a84ff;border-radius:2px"></span>주차장 유료</span>
   </div>
 </header>
 <div id="map"></div>
@@ -117,7 +117,9 @@ function statusAt(hours, when) {
 }
 
 function lotStatus(lot, when) {
+  if (lot.freeUnknown) return {free:false, label:'유료 (무료 시간 모름)'};
   const s = statusAt(lot.paid, when);
+  if (s.state === 'open' && lot.paid[DAYS[when.getDay()]] === '00:00-24:00') return {free:false, label:'24시간 유료'};
   if (s.state === 'open') return {free:false, label:`유료 (${fmt(s.closeAt)}부터 무료)`};
   if (s.state === 'closed' || lot.paid && lot.paid[DAYS[when.getDay()]] === null) return {free:true, label:'무료 시간'};
   return {free:null, label:'요금 시간 모름'};
@@ -235,11 +237,11 @@ function render() {
     const html = `<b>🅿️ ${esc(lot.name)}</b><br><b>${esc(ls.label)}</b><br>${esc(lot.free || '')}<br>
       <small>${esc(lot.fee || '')}${lot.spaces ? ` · ${lot.spaces}면` : ''}<br>${esc(lot.address || '')}${lot.coordNote ? ` (위치 ${esc(lot.coordNote)})` : ''}</small><br>
       <a href="${navLink(lot.name, lot.lat, lot.lng)}" target="_blank" rel="noopener">카카오맵 길찾기</a>${lot.source ? ` · <a href="${esc(lot.source)}" target="_blank" rel="noopener">출처</a>` : ''}`;
-    map.marker([lot.lat, lot.lng], `<div class="lotpin ${ls.free ? 'free' : 'paid'}">P</div>`, ls.free ? [28,28] : [22,22], 800, html);
+    map.marker([lot.lat, lot.lng], `<div class="lotpin ${ls.free ? 'free' : ls.free === false ? 'paid' : ''}">P</div>`, ls.free ? [28,28] : ls.free === false ? [26,26] : [22,22], 800, html);
     rows.push({d, rank: ls.free ? -1 : 3, html:
-      `<div class="item" data-lat="${lot.lat}" data-lng="${lot.lng}"><span class="dot" style="background:${ls.free ? 'var(--closed)' : '#636366'};border-radius:2px;margin-top:5px"></span>
-       <div><b>${esc(lot.name)}</b><small>${Math.round(d)}m · 주차장 ${lot.spaces ? lot.spaces + '면' : ''}</small></div>
-       <span class="st" style="color:${ls.free ? 'var(--closed)' : 'var(--muted)'}">${esc(ls.label)}</span></div>`});
+      `<div class="item" data-lat="${lot.lat}" data-lng="${lot.lng}"><span class="dot" style="background:${ls.free ? 'var(--closed)' : ls.free === false ? '#0a84ff' : '#636366'};border-radius:2px;margin-top:5px"></span>
+       <div><b>${esc(lot.name)}</b><small>${[Math.round(d)+'m', '주차장' + (lot.spaces ? ' ' + lot.spaces + '면' : ''), lot.feeShort].filter(Boolean).map(esc).join(' · ')}</small></div>
+       <span class="st" style="color:${ls.free ? 'var(--closed)' : ls.free === false ? '#0a84ff' : 'var(--muted)'}">${esc(ls.label)}</span></div>`});
   }
   rows.sort((a,b) => a.rank - b.rank || a.d - b.d);
   $('freeCount').textContent = `🅿️ ${useNow ? '지금' : '이 시각'} 주차 가능: 문 닫은 가게 ${freeStores}곳 · 무료 주차장 ${freeLots}곳`;

@@ -6,12 +6,13 @@
 <meta name="robots" content="noindex">
 <title>기분이재즈 주차 지도</title>
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&family=Gowun+Batang:wght@700&display=swap" rel="stylesheet">
 <style>
-  :root { --bg:#111; --panel:#1c1c1e; --line:#2c2c2e; --text:#f2f2f2; --muted:#9a9a9a; --closed:#22c55e; --soon:#facc15; --open:#ef4444; --unknown:#8e8e93; --accent:#f5b942; }
+  :root { --bg:#0e1c2b; --panel:#17293d; --line:#2a3f56; --text:#f3ede1; --muted:#9fb0c0; --closed:#4fae6e; --soon:#c9a262; --open:#b5574a; --unknown:#8794a3; --accent:#c9a262; --paid:#4f80b8; --off:#e0a092; /* 디자인: 한밤의 블루노트 */ }
   * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-  html, body { margin:0; height:100%; background:var(--bg); color:var(--text); font-family:-apple-system, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; overflow:hidden; }
-  button { font:inherit; border-radius:12px; border:1px solid #3a3a3c; background:#2c2c2e; color:var(--text); padding:8px 12px; }
-  button.on { background:var(--accent); color:#111; border-color:var(--accent); font-weight:700; }
+  html, body { margin:0; height:100%; background:var(--bg); color:var(--text); font-family:"Noto Sans KR", -apple-system, "Apple SD Gothic Neo", sans-serif; overflow:hidden; }
+  button { font:inherit; border-radius:12px; border:1px solid var(--line); background:var(--panel); color:var(--text); padding:8px 12px; }
+  button.on { background:var(--accent); color:var(--bg); border-color:var(--accent); font-weight:700; }
   #map { position:fixed; top:0; left:0; right:0; bottom:var(--sheetH, 300px); }
   /* 지도 위 떠 있는 버튼 */
   .float { position:fixed; z-index:1000; box-shadow:0 2px 8px rgba(0,0,0,.4); font-size:15px; font-weight:700; }
@@ -26,8 +27,8 @@
   #lotCount { font-size:13px; color:var(--muted); margin-top:2px; }
   .days { display:grid; grid-template-columns:repeat(7, 1fr); gap:4px; margin-top:10px; }
   .days button { padding:6px 0; font-size:15px; line-height:1.2; }
-  .days button small { display:block; font-size:10px; color:#c084fc; font-weight:400; }
-  .days button.on small { color:#111; }
+  .days button small { display:block; font-size:10px; color:var(--off); font-weight:400; }
+  .days button.on small { color:var(--bg); }
   .days button.today:not(.on) { border-color:var(--accent); }
   .timerow { display:flex; align-items:center; gap:10px; margin-top:10px; }
   .timerow button { flex:0 0 auto; }
@@ -52,8 +53,8 @@
   .tl { display:flex; gap:8px; padding:6px 4px; font-size:14px; line-height:1.45; cursor:pointer; }
   .tl .t { width:48px; flex:0 0 auto; font-weight:700; }
   .tl .n { width:64px; flex:0 0 auto; color:var(--closed); font-weight:700; }
-  .tl.sel { background:#2c2c2e; border-radius:8px; }
-  .off { color:#c084fc; }
+  .tl.sel { background:var(--line); border-radius:8px; }
+  .off { color:var(--off); }
   /* 지도 표시 */
   .pin { border-radius:50%; border:2px solid #fff; box-shadow:0 0 3px #000; width:100%; height:100%; }
   .pin.busy { opacity:.75; border-width:1px; }
@@ -61,8 +62,8 @@
   .pin.park { color:#111; font:800 14px/22px sans-serif; text-align:center; }
   .lotpin { border-radius:6px; color:#fff; font:800 14px/22px sans-serif; text-align:center; border:2px solid #fff; box-shadow:0 0 3px #000; width:100%; height:100%; background:#636366; }
   .lotpin.free { background:var(--closed); color:#111; font-size:17px; line-height:24px; }
-  .lotpin.paid { background:#0a84ff; font-size:13px; white-space:nowrap; }
-  .basepin { font-size:30px; line-height:30px; text-shadow:0 0 4px #000; }
+  .lotpin.paid { background:var(--paid); font-size:13px; white-space:nowrap; }
+  .basepin { width:30px; height:30px; border-radius:50%; background:var(--bg); border:2px solid var(--accent); color:var(--text); font:700 15px/26px "Gowun Batang", serif; text-align:center; box-shadow:0 0 0 3px rgba(14,28,43,.35), 0 2px 6px rgba(0,0,0,.5); }
   .me { width:16px; height:16px; border-radius:50%; background:#0a84ff; border:3px solid #fff; box-shadow:0 0 0 6px rgba(10,132,255,.25); }
   .leaflet-top.leaflet-left { top:calc(env(safe-area-inset-top) + 4px); }
   .leaflet-popup-content { font-size:14px; line-height:1.5; }
@@ -300,8 +301,8 @@ function render() {
   const when = chosenDate();
   map.clear();
   const base = DATA.base;
-  map.circle([base.lat, base.lng], RADIUS, {color:'#f5b942', weight:1.5, fillOpacity:0.04});
-  map.marker([base.lat, base.lng], '<div class="basepin">🎷</div>', [26,26], 1000,
+  map.circle([base.lat, base.lng], RADIUS, {color:'#c9a262', weight:1.5, fillOpacity:0.04});
+  map.marker([base.lat, base.lng], '<div class="basepin">재</div>', [26,26], 1000,
     `<b>${esc(base.name)}</b><br>${esc(base.address)}${base.coordNote ? `<br><small>위치: ${esc(base.coordNote)}</small>` : ''}`);
 
   const rows = []; let freeStores = 0, freeLots = 0, paidLots = 0;
@@ -335,14 +336,14 @@ function render() {
     const ls = lotStatus(lot, when);
     if (ls.free) freeLots++; else if (ls.free === false) paidLots++;
     if (onlyFree && !ls.free) continue;
-    const html = `<b>🅿️ ${esc(lot.name)}</b><br><b style="color:${ls.free ? 'var(--closed)' : ls.free === false ? '#0a84ff' : 'inherit'}">${esc(ls.free === false ? '💳 ' + ls.label : ls.label)}</b><br>${esc(lot.free || '')}<br>
+    const html = `<b>🅿️ ${esc(lot.name)}</b><br><b style="color:${ls.free ? 'var(--closed)' : ls.free === false ? 'var(--paid)' : 'inherit'}">${esc(ls.free === false ? '💳 ' + ls.label : ls.label)}</b><br>${esc(lot.free || '')}<br>
       <small>${esc(lot.fee || '')}${lot.spaces ? ` · ${lot.spaces}면` : ''}<br>${esc(lot.address || '')}${lot.coordNote ? ` (위치 ${esc(lot.coordNote)})` : ''}</small><br>
       <a href="${navLink(lot.name, lot.lat, lot.lng)}" target="_blank" rel="noopener">카카오맵 길찾기</a>${lot.source ? ` · <a href="${esc(lot.source)}" target="_blank" rel="noopener">출처</a>` : ''}`;
     map.marker([lot.lat, lot.lng], `<div class="lotpin ${ls.free ? 'free' : ls.free === false ? 'paid' : ''}">${ls.free === false ? 'P 유료' : 'P'}</div>`, ls.free ? [28,28] : ls.free === false ? [52,26] : [22,22], 800, html);
     rows.push({d, rank: ls.free ? -1 : 4.5, html:
-      `<div class="item" data-lat="${lot.lat}" data-lng="${lot.lng}"><span class="dot" style="background:${ls.free ? 'var(--closed)' : ls.free === false ? '#0a84ff' : '#636366'};border-radius:2px;margin-top:5px"></span>
+      `<div class="item" data-lat="${lot.lat}" data-lng="${lot.lng}"><span class="dot" style="background:${ls.free ? 'var(--closed)' : ls.free === false ? 'var(--paid)' : '#636366'};border-radius:2px;margin-top:5px"></span>
        <div><b>${esc(lot.name)}</b><small>${[Math.round(d)+'m', '주차장' + (lot.spaces ? ' ' + lot.spaces + '면' : ''), lot.feeShort].filter(Boolean).map(esc).join(' · ')}</small></div>
-       <span class="st" style="color:${ls.free ? 'var(--closed)' : ls.free === false ? '#0a84ff' : 'var(--muted)'}">${esc(ls.label)}</span></div>`});
+       <span class="st" style="color:${ls.free ? 'var(--closed)' : ls.free === false ? 'var(--paid)' : 'var(--muted)'}">${esc(ls.label)}</span></div>`});
   }
   rows.sort((a,b) => a.rank - b.rank || a.d - b.d);
   $('bigCount').textContent = `${freeStores}곳`;

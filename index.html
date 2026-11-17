@@ -55,6 +55,15 @@
   .guide li{counter-increment:g;display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--line);font-size:14px;line-height:1.6}
   .guide li:last-child{border-bottom:0}
   .guide li::before{content:counter(g,decimal-leading-zero);color:var(--gold);font-weight:700}
+  .quick{max-width:640px;margin:12px auto 0;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .quick a{display:block;background:var(--navy);color:#fff;text-decoration:none;border-radius:10px;padding:12px 6px;font-size:13px;font-weight:700;line-height:1.4;text-align:center}
+  .quick a small{display:block;font-weight:400;font-size:11px;opacity:.8}
+  .place{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .place div{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px;font-size:14px;line-height:1.6}
+  .place b{display:block;color:var(--gold);font-size:12px;letter-spacing:.05em}
+  .btn{display:block;text-align:center;background:var(--navy);color:#fff;text-decoration:none;border-radius:10px;padding:14px;font-size:15px;font-weight:700;margin-top:10px}
+  .btn.line{background:var(--card);color:var(--navy);border:1px solid var(--navy)}
+  .small{font-size:12px;color:var(--sub);margin-top:8px;line-height:1.6}
   footer{text-align:center;color:var(--sub);font-size:12px;padding:28px 16px 44px;line-height:1.9}
   footer .brand{letter-spacing:.2em;color:var(--navy);font-size:11px}
   footer a{color:var(--gold);font-weight:700;text-decoration:none}
@@ -105,9 +114,15 @@
     <div><b>매일 영업</b><br>영업시간 19:30 – 23:30<br>연주 1부 20:00 · 2부 21:30</div>
     <div><b>예약 · 문의</b><br>인스타그램 DM<br><a href="https://instagram.com/feelslike_jazz" target="_blank" rel="noopener">@feelslike_jazz</a></div>
   </div>
+  <div class="quick">
+    <a href="#menu-top">메뉴 · 주문<small>담고 결제 안내</small></a>
+    <a href="#request">신청곡 · 채팅<small>프로젝터 화면</small></a>
+    <a href="#parking">주차 안내<small>주차 지도</small></a>
+  </div>
 </header>
 
 <nav><div class="tabs" id="tabs"></div></nav>
+<span id="menu-top"></span>
 <main id="menu"></main>
 
 <main>
@@ -122,12 +137,44 @@
       <li><span>방문 예약과 문의는 <b>인스타그램 DM</b>(@feelslike_jazz)으로 받습니다. 날짜와 인원을 함께 알려주세요.</span></li>
     </ol></div>
   </section>
+
+  <section id="place">
+    <div class="sec-en">IN THE ROOM</div>
+    <h2>매장 안내</h2>
+    <div class="place">
+      <div><b>흡연실</b>무대 <strong>왼쪽</strong>에 있습니다.</div>
+      <div><b>화장실</b>무대 <strong>오른쪽</strong>에 있습니다.</div>
+    </div>
+    <p class="tip">흡연은 흡연실에서 해 주세요.</p>
+  </section>
+
+  <section id="request">
+    <div class="sec-en">SONG REQUEST</div>
+    <h2>신청곡 · 채팅</h2>
+    <p class="sec-note">듣고 싶은 곡을 신청하거나 한마디를 남기면 프로젝터 화면에 보여요.</p>
+    <div class="card" style="padding:14px 16px;font-size:14px;line-height:1.7">
+      <b>가게 와이파이</b>에 연결한 뒤 아래 버튼을 눌러 주세요.<br>
+      <span class="small">와이파이 이름·비밀번호는 직원에게 물어봐 주세요.</span>
+      <a class="btn" id="guestBtn" href="#">신청곡 · 채팅 열기</a>
+    </div>
+  </section>
+
+  <section id="parking">
+    <div class="sec-en">PARKING</div>
+    <h2>주차 안내</h2>
+    <div class="card" style="padding:14px 16px;font-size:14px;line-height:1.7">
+      가게 앞 주차 공간이 협소합니다. 만차일 때는 <b>근처 주차장</b>이나 <b>문 닫은 가게 앞</b>을 이용해 주세요.<br>
+      <span class="small">주차 지도에서 요일·시간별로 문 닫은 가게(초록), 주차장(P) 위치를 볼 수 있어요. 다른 가게 영업에 방해되지 않게 세워 주세요.</span>
+      <a class="btn" href="./parking/">주차 지도 열기</a>
+      <a class="btn line" href="https://map.kakao.com/link/search/대전 서구 탄방로7번길 139" target="_blank" rel="noopener">길찾기 (탄방로7번길 139)</a>
+    </div>
+  </section>
 </main>
 
 <footer>
   <div class="brand">FEELS LIKE JAZZ</div>
-  탄방동 1169, 지하 1층<br>
-  주차 공간이 협소하므로 만차 시 인근 주차장을 이용해 주세요.<br>
+  대전 서구 탄방로7번길 139 (탄방동 1169), 지하 1층<br>
+  흡연실은 무대 왼쪽, 화장실은 무대 오른쪽<br>
   <a href="https://instagram.com/feelslike_jazz" target="_blank" rel="noopener">Instagram @feelslike_jazz</a>
 </footer>
 
@@ -146,6 +193,8 @@
 /* ★ 결제 안내 기준: 맥주를 이 수 이상 고르면 후불(직원 주문)로 안내 */
 const POSTPAY_BEER_MIN = 5;
 /* ★ 후불 주문을 보내는 곳 (가게 아이맥). 비워 두면 「주문 보내기」 없이 직원 호출 안내만 나와요 */
+/* ★ 손님 신청곡·채팅 화면 (가게 아이맥, 가게 와이파이 안에서만 열림) */
+const GUEST_URL = "http://192.168.1.102:3000/guest";
 const ORDER_URL = "https://flj-imac.tail647679.ts.net/order-api/orders";
 /* ========================================================= */
 const MENU = [
@@ -188,7 +237,8 @@ const MENU = [
 
 const won = n => n.toLocaleString('ko-KR') + '원';
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const tabsData = [...MENU.map(c=>[c.id,c.tab]), ['guide','이용 안내']];
+const tabsData = [...MENU.map(c=>[c.id,c.tab]), ['guide','이용 안내'], ['place','흡연실·화장실'], ['request','신청곡'], ['parking','주차']];
+document.getElementById('guestBtn').href = GUEST_URL;
 document.getElementById('tabs').innerHTML = tabsData.map(([id,t])=>`<a href="#${id}">${esc(t)}</a>`).join('');
 document.getElementById('menu').innerHTML = MENU.map(c=>`
   <section id="${c.id}">

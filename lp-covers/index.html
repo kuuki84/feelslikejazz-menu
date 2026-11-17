@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>LP 커버 모으기</title>
+<style>
+  :root { --bg:#14110f; --card:#1f1a17; --line:#3a322c; --text:#f3ece4; --sub:#b8aa9b; --gold:#d9a648; --ok:#6fbf73; --mid:#e0b648; --bad:#e07a5f; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif; line-height:1.5; }
+  main { max-width:1100px; margin:0 auto; padding:20px 16px 60px; }
+  h1 { font-size:22px; margin:0 0 4px; color:var(--gold); }
+  p.sub { margin:0 0 16px; color:var(--sub); font-size:14px; }
+  textarea { width:100%; min-height:180px; background:var(--card); color:var(--text); border:1px solid var(--line); border-radius:10px; padding:12px; font-size:15px; }
+  .row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:10px 0; }
+  button { background:var(--gold); color:#1a1410; border:0; border-radius:8px; padding:10px 16px; font-size:15px; font-weight:700; cursor:pointer; }
+  button.ghost { background:transparent; color:var(--text); border:1px solid var(--line); font-weight:500; }
+  button:disabled { opacity:.5; cursor:default; }
+  select { background:var(--card); color:var(--text); border:1px solid var(--line); border-radius:8px; padding:9px; font-size:14px; }
+  #status { color:var(--sub); font-size:14px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:14px; margin-top:16px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; overflow:hidden; display:flex; flex-direction:column; }
+  .card .img { aspect-ratio:1/1; background:#000; display:flex; align-items:center; justify-content:center; color:var(--sub); font-size:13px; text-align:center; padding:0; }
+  .card .img img { width:100%; height:100%; object-fit:cover; display:block; }
+  .card .body { padding:10px 12px 12px; font-size:13px; display:flex; flex-direction:column; gap:4px; flex:1; }
+  .q { color:var(--sub); font-size:12px; }
+  .t { font-weight:700; font-size:14px; }
+  .badge { display:inline-block; border-radius:6px; padding:1px 7px; font-size:12px; font-weight:700; color:#111; }
+  .good { background:var(--ok); } .mid { background:var(--mid); } .bad { background:var(--bad); }
+  .acts { display:flex; gap:6px; flex-wrap:wrap; margin-top:auto; padding-top:6px; }
+  .acts button, .acts a { font-size:12px; padding:6px 9px; border-radius:6px; }
+  .acts a { color:var(--text); border:1px solid var(--line); text-decoration:none; }
+  details { margin-top:18px; background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; font-size:14px; color:var(--sub); }
+  summary { cursor:pointer; color:var(--text); font-weight:700; }
+  .cands { display:flex; gap:4px; flex-wrap:wrap; }
+  .cands img { width:44px; height:44px; object-fit:cover; border-radius:4px; cursor:pointer; border:2px solid transparent; }
+  .cands img.on { border-color:var(--gold); }
+</style>
+</head>
+<body>
+<main>
+  <h1>LP 커버 모으기</h1>
+  <p class="sub">한 줄에 앨범 하나씩 <b>아티스트 - 앨범 이름</b>으로 넣고 「커버 찾기」를 누르세요. 영어 이름이 더 잘 찾아져요.</p>
+
+  <textarea id="list" placeholder="Miles Davis - Kind of Blue
+John Coltrane - A Love Supreme
+Bill Evans - Waltz for Debby
+Chet Baker - Chet Baker Sings"></textarea>
+
+  <div class="row">
+    <button id="go">커버 찾기</button>
+    <select id="src" title="어디서 찾을지">
+      <option value="auto">자동 (애플 뮤직 → 없으면 MusicBrainz)</option>
+      <option value="itunes">애플 뮤직만</option>
+      <option value="mb">MusicBrainz만 (옛 음반 원본 스캔)</option>
+    </select>
+    <button id="zip" class="ghost" disabled>모두 ZIP으로 받기</button>
+    <button id="csv" class="ghost" disabled>목록표(CSV) 받기</button>
+    <span id="status"></span>
+  </div>
+
+  <div id="grid" class="grid"></div>
+
+  <details>
+    <summary>해상도 표시 보는 법</summary>
+    <p>LP 실물 크기(31cm)로 뽑을 때 기준이에요.<br>
+    <span class="badge good">좋음</span> 2400px 이상 – 31cm로 뽑아도 선명해요.<br>
+    <span class="badge mid">보통</span> 1500~2399px – 31cm면 살짝 흐려요. 20cm 안팎이 알맞아요.<br>
+    <span class="badge bad">작음</span> 1500px 미만 – 작게(10cm 안팎) 뽑거나 다른 후보를 고르세요.<br>
+    카드의 「300dpi 최대」는 사진관 기준 가장 선명하게 뽑을 수 있는 크기예요.</p>
+    <p>잘못된 앨범이 나오면 카드 아래 작은 후보 사진을 눌러 바꾸거나, 앨범 이름을 더 정확히 고쳐 다시 찾으세요.</p>
+  </details>
+  <details>
+    <summary>인쇄 전에 알아 둘 점 (저작권)</summary>
+    <p>앨범 커버는 음반사·디자이너의 저작물이에요. 가게 벽 장식으로 쓸 사진을 뽑을 때는 다음을 지키면 문제를 줄일 수 있어요(법률 자문 아님).<br>
+    · 가게 안 장식용으로만 쓰고, 뽑은 커버를 팔거나 굿즈·포스터로 만들지 않기<br>
+    · 인스타·전단 등 홍보물의 주된 그림으로 쓰지 않기<br>
+    · 가장 안전한 방법은 가게에 있는 실물 LP를 직접 진열하는 것</p>
+  </details>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const results = []; // {query, picked, cands:[{title, artist, year, url, thumb, source}], w, h}
+  let busy = false;
+
+  // ---------- 검색 ----------
+  let jsonpSeq = 0;
+  function jsonp(url, timeoutMs = 12000) {
+    return new Promise((resolve, reject) => {
+      const name = '__lpcb' + (++jsonpSeq);
+      const s = document.createElement('script');
+      const t = setTimeout(() => { cleanup(); reject(new Error('timeout')); }, timeoutMs);
+      function cleanup() { clearTimeout(t); delete window[name]; s.remove(); }
+      window[name] = (data) => { cleanup(); resolve(data); };
+      s.onerror = () => { cleanup(); reject(new Error('load')); };
+      s.src = url + (url.includes('?') ? '&' : '?') + 'callback=' + name;
+      document.head.appendChild(s);
+    });
+  }
+
+  function bigApple(u) {
+    // artworkUrl100 -> 큰 원본 (애플이 가진 최대 크기까지만 나옴)
+    return u.replace(/\/[0-9]+x[0-9]+(bb)?(-[0-9]+)?\.(jpg|png|webp)$/i, '/3000x3000bb.jpg');
+  }
+
+  async function searchApple(artist, album) {
+    const term = encodeURIComponent((artist + ' ' + album).trim());
+    const out = [];
+    for (const country of ['US', 'KR', 'JP']) {
+      try {
+        const d = await jsonp(`https://itunes.apple.com/search?term=${term}&entity=album&limit=6&country=${country}`);
+        for (const r of (d.results || [])) {
+          if (!r.artworkUrl100) continue;
+          out.push({ title: r.collectionName, artist: r.artistName, year: (r.releaseDate || '').slice(0, 4),
+                     url: bigApple(r.artworkUrl100), thumb: r.artworkUrl100, source: '애플 뮤직' });
+        }
+      } catch (e) {}
+      if (out.length) break;
+    }
+    return out;
+  }
+
+  let lastMb = 0;
+  async function mbWait() { // MusicBrainz는 1초에 한 번만
+    const gap = Date.now() - lastMb;
+    if (gap < 1100) await new Promise(r => setTimeout(r, 1100 - gap));
+    lastMb = Date.now();
+  }
+
+  async function searchMB(artist, album) {
+    const esc = (s) => s.replace(/(["\\])/g, '\\$1');
+    let q = album ? `releasegroup:"${esc(album)}"` : '';
+    if (artist) q += (q ? ' AND ' : '') + `artist:"${esc(artist)}"`;
+    await mbWait();
+    const r = await fetch(`https://musicbrainz.org/ws/2/release-group/?query=${encodeURIComponent(q)}&fmt=json&limit=5`);
+    if (!r.ok) return [];
+    const d = await r.json();
+    const out = [];
+    for (const g of (d['release-groups'] || [])) {
+      try {
+        const c = await fetch(`https://coverartarchive.org/release-group/${g.id}`);
+        if (!c.ok) continue;
+        const cj = await c.json();
+        const img = (cj.images || []).find(i => i.front) || (cj.images || [])[0];
+        if (!img) continue;
+        out.push({ title: g.title, artist: (g['artist-credit'] || []).map(a => a.name).join(', '),
+                   year: (g['first-release-date'] || '').slice(0, 4),
+                   url: (img.image || '').replace(/^http:/, 'https:'),
+                   thumb: ((img.thumbnails && (img.thumbnails['250'] || img.thumbnails.small)) || img.image || '').replace(/^http:/, 'https:'),
+                   source: 'MusicBrainz' });
+      } catch (e) {}
+      if (out.length >= 3) break;
+    }
+    return out;
+  }
+
+  function parseLine(line) {
+    const m = line.split(/\s+[-–—]\s+|\t|\s*\|\s*/);
+    if (m.length >= 2) return { artist: m[0].trim(), album: m.slice(1).join(' ').trim() };
+    return { artist: '', album: line.trim() };
+  }
+
+  // ---------- 해상도 ----------
+  function measure(url) {
+    return new Promise((resolve) => {
+      const im = new Image();
+      im.onload = () => resolve({ w: im.naturalWidth, h: im.naturalHeight });
+      im.onerror = () => resolve({ w: 0, h: 0 });
+      im.src = url;
+    });
+  }
+  function grade(px) {
+    if (px >= 2400) return ['good', '좋음'];
+    if (px >= 1500) return ['mid', '보통'];
+    return ['bad', '작음'];
+  }
+  const cm300 = (px) => (px / 300 * 2.54).toFixed(1);
+
+  // ---------- 화면 ----------
+  function safeName(s) { return s.replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80); }
+  function fileName(i) {
+    const r = results[i], c = r.cands[r.picked];
+    return String(i + 1).padStart(2, '0') + '_' + safeName((c ? c.artist + ' - ' + c.title : r.query)) + '.jpg';
+  }
+
+  function render(i) {
+    const r = results[i];
+    let el = document.querySelector(`[data-i="${i}"]`);
+    if (!el) { el = document.createElement('div'); el.className = 'card'; el.dataset.i = i; $('grid').appendChild(el); }
+    const c = r.cands[r.picked];
+    if (r.state === 'wait') { el.innerHTML = `<div class="img">찾는 중…</div><div class="body"><div class="q">${esc(r.query)}</div></div>`; return; }
+    if (!c) { el.innerHTML = `<div class="img">못 찾았어요<br>이름을 고쳐 보세요</div><div class="body"><div class="q">${esc(r.query)}</div></div>`; return; }
+    const px = Math.min(r.w, r.h);
+    const [cls, word] = grade(px);
+    const sizeTxt = r.w ? `${r.w}×${r.h}px · 300dpi 최대 ${cm300(px)}cm` : '크기 확인 중…';
+    el.innerHTML = `
+      <div class="img"><img src="${attr(c.thumb.includes('mzstatic') ? c.thumb.replace(/100x100bb/, '600x600bb') : c.thumb)}" alt=""></div>
+      <div class="body">
+        <div class="q">${i + 1}. ${esc(r.query)}</div>
+        <div class="t">${esc(c.title)}</div>
+        <div>${esc(c.artist)}${c.year ? ' · ' + esc(c.year) : ''} · ${esc(c.source)}</div>
+        <div>${r.w ? `<span class="badge ${cls}">${word}</span> ` : ''}${sizeTxt}</div>
+        ${r.cands.length > 1 ? `<div class="cands">${r.cands.map((k, j) => `<img src="${attr(k.thumb)}" title="${attr(k.artist + ' - ' + k.title)}" data-j="${j}" class="${j === r.picked ? 'on' : ''}">`).join('')}</div>` : ''}
+        <div class="acts">
+          <a href="${attr(c.url)}" target="_blank" rel="noopener">원본 열기</a>
+          <button class="ghost" data-dl>이것만 받기</button>
+        </div>
+      </div>`;
+    el.querySelectorAll('.cands img').forEach(im => im.onclick = () => pick(i, +im.dataset.j));
+    el.querySelector('[data-dl]').onclick = () => downloadOne(i);
+  }
+  function esc(s) { return String(s || '').replace(/[&<>]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[ch])); }
+  function attr(s) { return esc(s).replace(/"/g, '&quot;'); }
+
+  async function pick(i, j) {
+    const r = results[i]; r.picked = j; r.w = r.h = 0; render(i);
+    Object.assign(r, await measure(r.cands[j].url)); render(i);
+  }
+
+  // ---------- 받기 ----------
+  async function getBlob(url) {
+    const res = await fetch(url, { mode: 'cors' });
+    if (!res.ok) throw new Error(res.status);
+    return res.blob();
+  }
+  async function downloadOne(i) {
+    const c = results[i].cands[results[i].picked];
+    try {
+      const b = await getBlob(c.url);
+      saveBlob(b, fileName(i));
+    } catch (e) { window.open(c.url, '_blank'); }
+  }
+  function saveBlob(blob, name) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  }
+  async function downloadZip() {
+    if (!window.JSZip) { alert('ZIP 기능을 불러오지 못했어요. 카드마다 「이것만 받기」를 눌러 주세요.'); return; }
+    const zip = new JSZip(); let ok = 0; const fails = [];
+    $('zip').disabled = true;
+    for (let i = 0; i < results.length; i++) {
+      const r = results[i], c = r.cands[r.picked];
+      if (!c) continue;
+      $('status').textContent = `ZIP 만드는 중 ${i + 1}/${results.length}…`;
+      try { zip.file(fileName(i), await getBlob(c.url)); ok++; }
+      catch (e) { fails.push(r.query); }
+    }
+    zip.file('목록표.csv', csvText());
+    const blob = await zip.generateAsync({ type: 'blob' });
+    saveBlob(blob, 'LP커버_' + new Date().toISOString().slice(0, 10) + '.zip');
+    $('status').textContent = `ZIP에 ${ok}장 담았어요.` + (fails.length ? ` 못 담은 것: ${fails.join(', ')} (카드의 「원본 열기」로 받으세요)` : '');
+    $('zip').disabled = false;
+  }
+  function csvText() {
+    const q = (s) => '"' + String(s == null ? '' : s).replace(/"/g, '""') + '"';
+    const rows = [['번호', '입력', '앨범', '아티스트', '연도', '출처', '가로px', '세로px', '판정', '300dpi 최대(cm)', '파일 이름', '원본 주소']];
+    results.forEach((r, i) => {
+      const c = r.cands[r.picked];
+      if (!c) { rows.push([i + 1, r.query, '못 찾음']); return; }
+      const px = Math.min(r.w, r.h);
+      rows.push([i + 1, r.query, c.title, c.artist, c.year, c.source, r.w, r.h, r.w ? grade(px)[1] : '', r.w ? cm300(px) : '', fileName(i), c.url]);
+    });
+    return '\ufeff' + rows.map(row => row.map(q).join(',')).join('\r\n');
+  }
+
+  // ---------- 실행 ----------
+  async function run() {
+    if (busy) return;
+    const lines = $('list').value.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+    if (!lines.length) { $('status').textContent = '앨범 목록을 먼저 넣어 주세요.'; return; }
+    busy = true; $('go').disabled = $('zip').disabled = $('csv').disabled = true;
+    results.length = 0; $('grid').innerHTML = '';
+    const src = $('src').value;
+    lines.forEach((q, i) => { results.push({ query: q, cands: [], picked: 0, w: 0, h: 0, state: 'wait' }); render(i); });
+    for (let i = 0; i < lines.length; i++) {
+      $('status').textContent = `찾는 중 ${i + 1}/${lines.length}…`;
+      const { artist, album } = parseLine(lines[i]);
+      let cands = [];
+      try {
+        if (src !== 'mb') cands = await searchApple(artist, album);
+        if (!cands.length && src !== 'itunes') cands = await searchMB(artist, album);
+      } catch (e) {}
+      const r = results[i]; r.cands = cands; r.state = 'done'; render(i);
+      if (cands.length) { Object.assign(r, await measure(cands[0].url)); render(i); }
+    }
+    const found = results.filter(r => r.cands.length).length;
+    $('status').textContent = `${lines.length}개 중 ${found}개 찾았어요. 맞는지 확인하고 「모두 ZIP으로 받기」를 누르세요.`;
+    busy = false; $('go').disabled = false; $('zip').disabled = !found; $('csv').disabled = false;
+    try { localStorage.setItem('lpList', $('list').value); } catch (e) {}
+  }
+
+  $('go').onclick = run;
+  $('zip').onclick = downloadZip;
+  $('csv').onclick = () => saveBlob(new Blob([csvText()], { type: 'text/csv' }), 'LP커버_목록표.csv');
+  try { const s = localStorage.getItem('lpList'); if (s) $('list').value = s; } catch (e) {}
+})();
+</script>
+</body>
+</html>

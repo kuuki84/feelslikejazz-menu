@@ -20,6 +20,9 @@
   select { background:var(--card); color:var(--text); border:1px solid var(--line); border-radius:8px; padding:9px; font-size:14px; }
   #status { color:var(--sub); font-size:14px; }
   .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:14px; margin-top:16px; }
+  .card.small { opacity:.45; }
+  .chk { font-size:14px; display:flex; align-items:center; gap:6px; cursor:pointer; }
+  .chk input { width:18px; height:18px; accent-color:var(--gold); }
   .card { background:var(--card); border:1px solid var(--line); border-radius:12px; overflow:hidden; display:flex; flex-direction:column; }
   .card .img { aspect-ratio:1/1; background:#000; display:flex; align-items:center; justify-content:center; color:var(--sub); font-size:13px; text-align:center; padding:0; }
   .card .img img { width:100%; height:100%; object-fit:cover; display:block; }
@@ -57,6 +60,7 @@ Chet Baker - Chet Baker Sings"></textarea>
     </select>
     <button id="zip" class="ghost" disabled>모두 ZIP으로 받기</button>
     <button id="csv" class="ghost" disabled>목록표(CSV) 받기</button>
+    <label class="chk"><input type="checkbox" id="lpOnly" checked> LP 크기(31cm)로 뽑을 수 있는 것만 저장</label>
     <span id="status"></span>
   </div>
 
@@ -65,9 +69,9 @@ Chet Baker - Chet Baker Sings"></textarea>
   <details>
     <summary>해상도 표시 보는 법</summary>
     <p>LP 실물 크기(31cm)로 뽑을 때 기준이에요.<br>
-    <span class="badge good">좋음</span> 2400px 이상 – 31cm로 뽑아도 선명해요.<br>
-    <span class="badge mid">보통</span> 1500~2399px – 31cm면 살짝 흐려요. 20cm 안팎이 알맞아요.<br>
-    <span class="badge bad">작음</span> 1500px 미만 – 작게(10cm 안팎) 뽑거나 다른 후보를 고르세요.<br>
+    <span class="badge good">LP 크기 OK</span> 가로·세로 2400px 이상 – 31cm로 뽑아도 선명해요(약 200dpi).<br>
+    <span class="badge bad">LP 크기 부족</span> 2400px 미만 – 31cm로 뽑으면 흐려요. 흐리게 표시되고, 「LP 크기로 뽑을 수 있는 것만 저장」이 켜져 있으면 ZIP에서 빠져요.<br>
+    찾을 때 후보 중에서 LP 크기가 되는 이미지를 먼저 골라요. 애플 뮤직에 큰 이미지가 없으면 MusicBrainz도 찾아봐요.<br>
     카드의 「300dpi 최대」는 사진관 기준 가장 선명하게 뽑을 수 있는 크기예요.</p>
     <p>잘못된 앨범이 나오면 카드 아래 작은 후보 사진을 눌러 바꾸거나, 앨범 이름을 더 정확히 고쳐 다시 찾으세요.</p>
   </details>
@@ -173,10 +177,10 @@ Chet Baker - Chet Baker Sings"></textarea>
       im.src = url;
     });
   }
+  const LP_PX = 2400; // 31.4cm를 약 200dpi로 뽑을 수 있는 크기
+  const isLp = (r) => Math.min(r.w || 0, r.h || 0) >= LP_PX;
   function grade(px) {
-    if (px >= 2400) return ['good', '좋음'];
-    if (px >= 1500) return ['mid', '보통'];
-    return ['bad', '작음'];
+    return px >= LP_PX ? ['good', 'LP 크기 OK'] : ['bad', 'LP 크기 부족'];
   }
   const cm300 = (px) => (px / 300 * 2.54).toFixed(1);
 
@@ -190,7 +194,8 @@ Chet Baker - Chet Baker Sings"></textarea>
   function render(i) {
     const r = results[i];
     let el = document.querySelector(`[data-i="${i}"]`);
-    if (!el) { el = document.createElement('div'); el.className = 'card'; el.dataset.i = i; $('grid').appendChild(el); }
+    if (!el) { el = document.createElement('div'); el.dataset.i = i; $('grid').appendChild(el); }
+    el.className = 'card' + (r.w && !isLp(r) ? ' small' : '');
     const c = r.cands[r.picked];
     if (r.state === 'wait') { el.innerHTML = `<div class="img">찾는 중…</div><div class="body"><div class="q">${esc(r.query)}</div></div>`; return; }
     if (!c) { el.innerHTML = `<div class="img">못 찾았어요<br>이름을 고쳐 보세요</div><div class="body"><div class="q">${esc(r.query)}</div></div>`; return; }
@@ -217,8 +222,9 @@ Chet Baker - Chet Baker Sings"></textarea>
   function attr(s) { return esc(s).replace(/"/g, '&quot;'); }
 
   async function pick(i, j) {
-    const r = results[i]; r.picked = j; r.w = r.h = 0; render(i);
-    Object.assign(r, await measure(r.cands[j].url)); render(i);
+    const r = results[i], c = r.cands[j]; r.picked = j; r.w = r.h = 0; render(i);
+    if (!c.w) Object.assign(c, await measure(c.url));
+    r.w = c.w; r.h = c.h; render(i); summary();
   }
 
   // ---------- 받기 ----------
@@ -229,6 +235,8 @@ Chet Baker - Chet Baker Sings"></textarea>
   }
   async function downloadOne(i) {
     const c = results[i].cands[results[i].picked];
+    if ($('lpOnly').checked && !isLp(results[i]) &&
+        !confirm('이 이미지는 LP 크기(31cm)로 뽑기엔 작아요. 그래도 받을까요?')) return;
     try {
       const b = await getBlob(c.url);
       saveBlob(b, fileName(i));
@@ -242,11 +250,12 @@ Chet Baker - Chet Baker Sings"></textarea>
   }
   async function downloadZip() {
     if (!window.JSZip) { alert('ZIP 기능을 불러오지 못했어요. 카드마다 「이것만 받기」를 눌러 주세요.'); return; }
-    const zip = new JSZip(); let ok = 0; const fails = [];
+    const zip = new JSZip(); let ok = 0; const fails = [], skipped = [];
     $('zip').disabled = true;
     for (let i = 0; i < results.length; i++) {
       const r = results[i], c = r.cands[r.picked];
       if (!c) continue;
+      if ($('lpOnly').checked && !isLp(r)) { skipped.push(r.query); continue; }
       $('status').textContent = `ZIP 만드는 중 ${i + 1}/${results.length}…`;
       try { zip.file(fileName(i), await getBlob(c.url)); ok++; }
       catch (e) { fails.push(r.query); }
@@ -254,7 +263,7 @@ Chet Baker - Chet Baker Sings"></textarea>
     zip.file('목록표.csv', csvText());
     const blob = await zip.generateAsync({ type: 'blob' });
     saveBlob(blob, 'LP커버_' + new Date().toISOString().slice(0, 10) + '.zip');
-    $('status').textContent = `ZIP에 ${ok}장 담았어요.` + (fails.length ? ` 못 담은 것: ${fails.join(', ')} (카드의 「원본 열기」로 받으세요)` : '');
+    $('status').textContent = `ZIP에 ${ok}장 담았어요.` + (skipped.length ? ` LP 크기 부족으로 뺀 것 ${skipped.length}장.` : '') + (fails.length ? ` 못 담은 것: ${fails.join(', ')} (카드의 「원본 열기」로 받으세요)` : '');
     $('zip').disabled = false;
   }
   function csvText() {
@@ -267,6 +276,39 @@ Chet Baker - Chet Baker Sings"></textarea>
       rows.push([i + 1, r.query, c.title, c.artist, c.year, c.source, r.w, r.h, r.w ? grade(px)[1] : '', r.w ? cm300(px) : '', fileName(i), c.url]);
     });
     return '\ufeff' + rows.map(row => row.map(q).join(',')).join('\r\n');
+  }
+
+  // 후보 중 LP 크기가 되는 것을 먼저 고름. 없으면 가장 큰 것.
+  async function choose(r, i, src, artist, album) {
+    if (!r.cands.length) return;
+    const tryList = async (list, from) => {
+      for (let j = from; j < r.cands.length && j < from + list; j++) {
+        const c = r.cands[j];
+        if (!c.w) Object.assign(c, await measure(c.url));
+        if (Math.min(c.w, c.h) >= LP_PX) { r.picked = j; r.w = c.w; r.h = c.h; render(i); return true; }
+      }
+      return false;
+    };
+    if (await tryList(4, 0)) return;
+    if (src === 'auto' && r.cands[0].source !== 'MusicBrainz') {
+      try {
+        const more = await searchMB(artist, album);
+        const start = r.cands.length;
+        r.cands.push(...more);
+        if (await tryList(more.length, start)) return;
+      } catch (e) {}
+    }
+    let best = 0;
+    r.cands.forEach((c, j) => { if (Math.min(c.w || 0, c.h || 0) > Math.min(r.cands[best].w || 0, r.cands[best].h || 0)) best = j; });
+    r.picked = best; r.w = r.cands[best].w || 0; r.h = r.cands[best].h || 0; render(i);
+  }
+
+  function summary() {
+    if (busy) return 0;
+    const found = results.filter(r => r.cands.length).length;
+    const lp = results.filter(r => r.cands.length && isLp(r)).length;
+    $('status').textContent = `${results.length}개 중 ${found}개 찾았고, LP 크기로 뽑을 수 있는 건 ${lp}개예요. 맞는지 확인하고 「모두 ZIP으로 받기」를 누르세요.`;
+    return found;
   }
 
   // ---------- 실행 ----------
@@ -287,11 +329,11 @@ Chet Baker - Chet Baker Sings"></textarea>
         if (!cands.length && src !== 'itunes') cands = await searchMB(artist, album);
       } catch (e) {}
       const r = results[i]; r.cands = cands; r.state = 'done'; render(i);
-      if (cands.length) { Object.assign(r, await measure(cands[0].url)); render(i); }
+      await choose(r, i, src, artist, album);
     }
-    const found = results.filter(r => r.cands.length).length;
-    $('status').textContent = `${lines.length}개 중 ${found}개 찾았어요. 맞는지 확인하고 「모두 ZIP으로 받기」를 누르세요.`;
-    busy = false; $('go').disabled = false; $('zip').disabled = !found; $('csv').disabled = false;
+    busy = false;
+    const found = summary();
+    $('go').disabled = false; $('zip').disabled = !found; $('csv').disabled = false;
     try { localStorage.setItem('lpList', $('list').value); } catch (e) {}
   }
 

@@ -160,8 +160,7 @@
     <h2>신청곡 · 채팅</h2>
     <p class="sec-note">듣고 싶은 곡을 신청하거나 한마디를 남기면 프로젝터 화면에 보여요.</p>
     <div class="card" style="padding:14px 16px;font-size:14px;line-height:1.7">
-      <b>가게 와이파이</b>에 연결한 뒤 아래 버튼을 눌러 주세요.<br>
-      <span class="small">와이파이 이름·비밀번호는 직원에게 물어봐 주세요.</span>
+      와이파이 연결 없이 바로 눌러 주세요.<br>
       <a class="btn" id="guestBtn" href="#">신청곡 · 채팅 열기</a>
     </div>
   </section>
@@ -200,8 +199,8 @@
 /* ★ 결제 안내 기준: 맥주를 이 수 이상 고르면 후불(직원 주문)로 안내 */
 const POSTPAY_BEER_MIN = 5;
 /* ★ 후불 주문을 보내는 곳 (가게 아이맥). 비워 두면 「주문 보내기」 없이 직원 호출 안내만 나와요 */
-/* ★ 손님 신청곡·채팅 화면 (가게 아이맥, 가게 와이파이 안에서만 열림) */
-const GUEST_URL = "http://192.168.1.102:3000/guest";
+/* ★ 손님 신청곡·채팅 화면 (가게 아이맥, Tailscale Funnel 로 바깥에서도 열림) */
+const GUEST_URL = "https://flj-imac.tail647679.ts.net/guest/";
 const ORDER_URL = "https://flj-imac.tail647679.ts.net/order-api/orders";
 /* ========================================================= */
 const MENU = [

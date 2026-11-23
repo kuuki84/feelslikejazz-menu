@@ -22,6 +22,7 @@
 <link rel="canonical" href="https://kuuki84.github.io/feelslikejazz-menu/">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Gowun+Batang:wght@400;700&family=Cormorant+Garamond:ital,wght@1,500&display=swap" rel="stylesheet">
+<script>document.documentElement.classList.add("wait");setTimeout(function(){document.documentElement.classList.remove("wait")},2500);</script>
 <style>
   /* ★ 디자인: 한밤의 블루노트 (2026-11) — 색은 여기서만 바꾸면 됩니다 */
   :root{--bg:#0e1c2b;--card:#17293d;--line:#2a3f56;--tx:#f3ede1;--sub:#9fb0c0;
@@ -29,7 +30,10 @@
   *{box-sizing:border-box;margin:0;padding:0}
   body{background:var(--bg);color:var(--tx);font-family:'Noto Sans KR',sans-serif;
     word-break:keep-all;-webkit-font-smoothing:antialiased}
+  html.wait body{opacity:0}
+  body{transition:opacity .2s}
   b,strong{color:var(--tx)}
+  .ic{width:1.15em;height:1.15em;vertical-align:-.2em;flex:none}
   .serif{font-family:'Gowun Batang',serif}
   header{background:var(--bg);text-align:center;padding:40px 16px 28px;border-bottom:1px solid var(--line)}
   .eyebrow,.sec-en{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:15px;letter-spacing:.08em;color:var(--gold)}
@@ -76,6 +80,13 @@
   .quick a{display:block;background:var(--card);color:var(--tx);text-decoration:none;border:1px solid rgba(201,162,98,.35);border-radius:10px;padding:12px 6px;font-size:13px;font-weight:700;line-height:1.4;text-align:center}
   .quick a:first-child{background:var(--wine);border-color:var(--wine)}
   .quick a small{display:block;font-weight:400;font-size:11px;opacity:.8}
+  .quick .ic{display:block;width:22px;height:22px;margin:0 auto 6px;color:var(--gold)}
+  .quick a:first-child .ic{color:var(--tx)}
+  .btn .ic,.place .ic,footer .ic{margin-right:6px}
+  .notice{max-width:640px;margin:20px auto 0;display:flex;gap:10px;align-items:flex-start;text-align:left;background:var(--gold);color:var(--bg);border-radius:10px;padding:11px 14px;font-size:14px;line-height:1.6;font-weight:500}
+  .notice[hidden]{display:none}
+  .notice .ic{margin-top:.2em}
+  .notice+.tonight{margin-top:10px}
   .place{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .place div{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;font-size:14px;line-height:1.6}
   .place b{display:block;color:var(--gold);font-size:12px;letter-spacing:.05em}
@@ -133,8 +144,27 @@
   .live .d.today b,.live .d.today span{color:var(--bg)}
   .live .t{font-size:16px;font-weight:700}
   .live .w{font-size:13px;color:var(--sub);margin-top:3px;line-height:1.55}
+  .live.off .d{border-color:var(--line)}
+  .live.off .d b,.live.off .t{color:var(--sub)}
+  .live .t .rest{display:inline-block;font-size:12px;font-weight:700;color:#e0a092;border:1px solid rgba(165,80,63,.8);border-radius:999px;padding:2px 10px}
+  .closed-note{font-size:13px;line-height:1.6;color:#e0a092;border:1px solid rgba(165,80,63,.8);border-radius:10px;padding:9px 12px;margin-bottom:10px}
+  .closed-note[hidden]{display:none}
+  .tn-closed{font-size:12px;color:#e0a092;margin-top:6px}
+  .act a{color:var(--gold);font-weight:700;text-decoration:none}
+  .artist{display:flex;gap:14px;padding:16px 0;border-bottom:1px solid var(--line);align-items:flex-start}
+  .artist:last-child{border-bottom:0}
+  .artist .ph{flex:none;width:68px;height:68px;border-radius:50%;object-fit:cover;background:var(--bg);border:1px solid rgba(201,162,98,.45);
+    display:flex;align-items:center;justify-content:center;font-family:'Gowun Batang',serif;font-size:26px;color:var(--gold)}
+  .artist .n{font-size:17px;font-weight:700}
+  .artist .r{font-size:12px;color:var(--gold);margin-top:2px}
+  .artist .bio{font-size:13px;color:var(--sub);line-height:1.65;margin-top:6px}
   .gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-  .gallery img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:8px;display:block;background:var(--card)}
+  .gallery img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:8px;display:block;background:var(--card);cursor:zoom-in}
+  .lightbox{position:fixed;inset:0;z-index:40;background:rgba(5,10,16,.94);display:none;flex-direction:column;align-items:center;justify-content:center;padding:16px;cursor:zoom-out}
+  .lightbox.show{display:flex}
+  .lightbox img{max-width:100%;max-height:82vh;border-radius:8px}
+  .lightbox p{margin-top:12px;font-size:13px;color:var(--sub);text-align:center}
+  footer .admin{display:inline-block;margin-top:10px;color:var(--sub);font-weight:400;font-size:11px;opacity:.7}
   .maps{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .maps .btn{margin-top:10px}
   /* 오늘 밤 */
@@ -162,12 +192,7 @@
   .extra b,.wifi b{color:var(--gold);font-size:12px;margin-right:8px}
   .wifi{padding:14px 16px;display:grid;gap:6px}
   .wifi .pw{font-weight:700;letter-spacing:.04em;user-select:all}
-  .wifi-steps{margin-top:10px;background:var(--card);border:1px solid var(--gold);border-radius:10px;padding:12px 16px;font-size:14px;line-height:1.8}
-  .wifi-steps ol{padding-left:18px}
-  .wifi-steps button{margin-top:8px;font-family:inherit;font-size:13px;background:transparent;color:var(--gold);border:1px solid var(--gold);border-radius:999px;padding:6px 12px;cursor:pointer}
-  .wifi-qr{display:flex;gap:14px;align-items:center;margin-top:14px}
-  .wifi-qr img{flex:none;border-radius:8px;background:#fff}
-  .wifi-qr p{font-size:13px;color:var(--sub);line-height:1.7}
+  .wifi .ic{color:var(--gold);margin-right:6px}
   .faq{border-bottom:1px solid var(--line);padding:4px 0}
   .faq:last-child{border-bottom:0}
   .faq summary{cursor:pointer;font-size:15px;font-weight:700;padding:10px 0;list-style:none}
@@ -180,8 +205,9 @@
 <header>
   <img class="logo-img" src="logo-cream.png" alt="기분이 재즈 · FEELS LIKE JAZZ · LIVE JAZZ · BLUES · DRINKS">
   <h1 class="sr">기분이 재즈 · 대전 탄방동 재즈바</h1>
-  <p class="tagline">대화 사이에 재즈,<br>그리고 술 한 잔.</p>
-  <p class="intro">재즈와 블루스 라이브를 들으며 술 한 잔과 이야기를 나누는 공간입니다.<br>재즈를 잘 몰라도 좋습니다.</p>
+  <p class="tagline" id="tagline">대화 사이에 재즈,<br>그리고 술 한 잔.</p>
+  <p class="intro" id="intro">재즈와 블루스 라이브를 들으며 술 한 잔과 이야기를 나누는 공간입니다.<br>재즈를 잘 몰라도 좋습니다.</p>
+  <div class="notice" id="notice" hidden></div>
   <div class="tonight" id="tonight"></div>
   <div class="quick" id="quick"></div>
 </header>
@@ -194,14 +220,21 @@
   <section id="live" data-tab="공연 일정">
     <div class="sec-en">LIVE SCHEDULE</div>
     <h2>공연 일정</h2>
-    <p class="sec-note">매일 1부 20:00 · 2부 21:30 · 일정은 바뀔 수 있어요.</p>
+    <p class="sec-note" id="liveNote">매일 1부 20:00 · 2부 21:30 · 일정은 바뀔 수 있어요.</p>
+    <p class="closed-note" id="closedNote" hidden></p>
     <div class="card" id="liveList"></div>
+  </section>
+
+  <section id="artists" data-tab="아티스트">
+    <div class="sec-en">ARTISTS</div>
+    <h2>아티스트 소개</h2>
+    <div class="card" id="artistList"></div>
   </section>
 
   <section id="about" data-tab="가게 소개">
     <div class="sec-en">THE ROOM</div>
     <h2>이런 곳이에요</h2>
-    <div class="gallery">
+    <div class="gallery" id="gallery">
       <img src="photos/stage.jpg" alt="무대와 홀 전경" loading="lazy">
       <img src="photos/instruments.jpg" alt="무대 위 기타와 색소폰" loading="lazy">
       <img src="photos/table.jpg" alt="전구 조명과 안개꽃이 놓인 테이블" loading="lazy">
@@ -209,7 +242,7 @@
       <img src="photos/bar.jpg" alt="바 선반의 와인과 술" loading="lazy">
       <img src="photos/wine.jpg" alt="와인과 테이블 조명" loading="lazy">
     </div>
-    <ul class="points">
+    <ul class="points" id="points">
       <li><b>매일 라이브</b>재즈와 블루스 연주가 1부 20:00, 2부 21:30에 열려요.</li>
       <li><b>신청곡</b>듣고 싶은 곡을 휴대폰으로 신청하면 프로젝터 화면에 떠요.</li>
       <li><b>셀프 5,000원</b>맥주·음료는 냉장고에서 직접 꺼내 단말기에서 결제해요.</li>
@@ -226,7 +259,7 @@
   <section id="guide" data-tab="이용 안내">
     <div class="sec-en">HOW TO ENJOY</div>
     <h2>이용 안내</h2>
-    <div class="card"><ol class="guide">
+    <div class="card"><ol class="guide" id="guideList">
       <li><span>맥주·음료·안주 패키지는 <b>모두 5,000원</b>이에요. 직접 가져가신 뒤 <b>수량에 맞춰 단말기에서 결제</b>해 주세요. 더 드실 때도 같은 방법이에요.</span></li>
       <li><span>기본안주는 <b>무료</b>예요. 드실 만큼 덜어 가시고, 부족하면 더 가져가세요.</span></li>
       <li><span>위스키·보드카·데킬라·와인과 이번 달 특별안주는 <b>직원에게 주문</b>해 주세요. 결제가 어려울 때도 편하게 불러주세요.</span></li>
@@ -243,20 +276,13 @@
     <div class="sec-en">SONG REQUEST</div>
     <h2>신청곡 · 채팅</h2>
     <p class="sec-note">듣고 싶은 곡을 신청하거나 한마디를 남기면 프로젝터 화면에 보여요.</p>
-    <a class="btn" id="guestBtn" href="#">신청곡 · 채팅 열기</a>
+    <a class="btn" id="guestBtn" href="#" data-ic="music">신청곡 · 채팅 열기</a>
     <p class="small">와이파이 없이 휴대폰 데이터로도 열려요. 안 열리면 가게 와이파이에 연결하고 <a id="guestLan" href="#" style="color:var(--gold)">가게 와이파이용 화면</a>을 눌러 주세요.</p>
   </section>
 
-  <section id="wifi" data-tab="와이파이">
-    <div class="sec-en">FREE WI-FI</div>
-    <h2>와이파이</h2>
+  <section id="wifi" data-tab="Free WIFI">
+    <h2>Free WIFI</h2>
     <div class="card wifi" id="wifiInfo"></div>
-    <a class="btn" id="wifiBtn" href="#">와이파이 연결하기</a>
-    <div class="wifi-steps" id="wifiSteps" hidden></div>
-    <div class="wifi-qr">
-      <img src="wifi-qr.svg" alt="와이파이 연결 QR 코드" width="132" height="132">
-      <p>다른 휴대폰 <b>카메라로 이 QR을 찍으면</b> 바로 연결돼요.<br>테이블 카드의 와이파이 QR도 같아요.</p>
-    </div>
   </section>
 
   <section id="visit" data-tab="오시는 길">
@@ -264,17 +290,17 @@
     <h2>오시는 길</h2>
     <div class="card" style="padding:14px 16px;font-size:14px;line-height:1.7">
       <b>대전 서구 탄방로7번길 139, 지하 1층</b><br>
-      <span class="small" style="margin:0">매일 19:30 – 23:30 · 예약·문의는 인스타그램 DM</span>
+      <span class="small" style="margin:0" id="visitHours">매일 19:30 – 23:30 · 예약·문의는 인스타그램 DM</span>
       <div class="maps">
-        <a class="btn line" href="https://map.naver.com/p/search/%EB%8C%80%EC%A0%84%20%EC%84%9C%EA%B5%AC%20%ED%83%84%EB%B0%A9%EB%A1%9C7%EB%B2%88%EA%B8%B8%20139" target="_blank" rel="noopener">네이버 지도</a>
-        <a class="btn line" href="https://place.map.kakao.com/647368140" target="_blank" rel="noopener">카카오맵</a>
+        <a class="btn line" href="https://map.naver.com/p/search/%EB%8C%80%EC%A0%84%20%EC%84%9C%EA%B5%AC%20%ED%83%84%EB%B0%A9%EB%A1%9C7%EB%B2%88%EA%B8%B8%20139" target="_blank" rel="noopener" data-ic="pin">네이버 지도</a>
+        <a class="btn line" href="https://place.map.kakao.com/647368140" target="_blank" rel="noopener" data-ic="pin">카카오맵</a>
       </div>
     </div>
     <h3 class="h3">주차</h3>
     <div class="card" style="padding:14px 16px;font-size:14px;line-height:1.7">
       가게 앞 주차 공간이 좁아요. 만차일 때는 <b>근처 주차장</b>이나 <b>문 닫은 가게 앞</b>을 이용해 주세요.
       <span class="small" style="display:block">주차 지도에서 시간별로 문 닫은 가게(초록)와 주차장(P)을 볼 수 있어요. 다른 가게 영업에 방해되지 않게 세워 주세요.</span>
-      <a class="btn" href="./parking/">주차 지도 열기</a>
+      <a class="btn" href="./parking/" data-ic="parking">주차 지도 열기</a>
     </div>
   </section>
 
@@ -288,143 +314,217 @@
 <footer>
   <div class="brand">FEELS LIKE JAZZ</div>
   기분이 재즈 · 대전 서구 탄방로7번길 139, 지하 1층<br>
-  매일 19:30 – 23:30 · 연주 1부 20:00 · 2부 21:30<br>
-  예약·문의 <a href="https://instagram.com/feelslike_jazz" target="_blank" rel="noopener">Instagram @feelslike_jazz</a>
+  <span id="footHours">매일 19:30 – 23:30 · 연주 1부 20:00 · 2부 21:30</span><br>
+  예약·문의 <a href="https://instagram.com/feelslike_jazz" target="_blank" rel="noopener" data-ic="insta">Instagram @feelslike_jazz</a><br>
+  <a class="admin" href="./admin/" rel="nofollow">관리자</a>
 </footer>
 
 <div class="bar" id="bar"><button id="openSheet"><span id="barCount"></span><span>주문 확인 ›</span></button></div>
+<div class="lightbox" id="lightbox" role="dialog" aria-label="사진 크게 보기"><img alt=""><p></p></div>
 <div class="sheet-bg" id="sheetBg"></div>
 <div class="sheet" id="sheet" role="dialog" aria-label="주문 확인"><div class="sheet-in" id="sheetIn"></div></div>
 
 <script>
+(async function(){
 /* =========================================================
-   ★ 메뉴 수정은 여기만 고치면 됩니다 ★
-   - name: 이름 / sub: 이름 옆 작은 글씨 / kind: 이름 위 분류
-   - desc: 설명 / prices: [["용량", 가격], ...] (용량 없으면 "")
-   - old: 할인 전 가격(없으면 지우기)
-   - pay:"staff" 인 칸은 직원 주문(후불) 품목, beer:true 는 맥주
+   ★ 내용 고치기 ★
+   이제 공연 일정·사진·소개 글·메뉴는 「관리자 페이지」(admin/)에서 고쳐요.
+   고친 내용은 content.json 파일에 저장되고, 이 페이지가 그 파일을 읽어서 보여줘요.
+   아래 DEFAULTS 는 content.json 을 못 읽었을 때만 쓰는 예비 값이에요.
    ========================================================= */
-/* ★ 결제 안내 기준: 맥주를 이 수 이상 고르면 후불(직원 주문)로 안내
-   (지금은 셀프 칸(pay:"self")에 담기 버튼이 없어서 쓰이지 않아요. 셀프 칸에 담기를 다시 켜려면 pay:"self"를 지우기) */
-const POSTPAY_BEER_MIN = 5;
-/* ★ 후불 주문을 보내는 곳 (가게 아이맥). 비워 두면 「주문 보내기」 없이 직원 호출 안내만 나와요 */
 /* ★ 손님 신청곡·채팅 화면
    GUEST_URL     : 인터넷 주소(가게 아이맥 Tailscale Funnel /guest). 와이파이 없이 데이터로도 열려요.
    GUEST_URL_LAN : 가게 와이파이 안 주소. 인터넷 주소가 안 열릴 때 쓰는 예비 링크 */
 const GUEST_URL = "https://flj-imac.tail647679.ts.net/guest/";
 const GUEST_URL_LAN = "http://192.168.1.102:3000/guest";
+/* ★ 후불 주문을 보내는 곳 (가게 아이맥). 비워 두면 「주문 보내기」 없이 직원 호출 안내만 나와요 */
 const ORDER_URL = "https://flj-imac.tail647679.ts.net/order-api/orders";
-/* =========================================================
-   ★ 가게 기본 정보 ★
-   ========================================================= */
-const HOURS = { open:"19:30", close:"23:30", sets:["20:00","21:30"] };
-/* 쉬는 날: 정기 휴무 요일(0=일 … 6=토)과 임시 휴무 날짜. 없으면 비워 두기 */
-const CLOSED_WEEKDAYS = [];
-const CLOSED_DATES = [];            // 예) "2026-12-25"
+/* ★ 결제 안내 기준: 맥주를 이 수 이상 고르면 후불(직원 주문)로 안내 */
+const POSTPAY_BEER_MIN = 5;
 /* ★ 와이파이: 손님용은 비밀번호 없이 열려 있어요(open:true).
    비밀번호가 생기면 password에 적고 open:false로 — 비밀번호는 테이블 QR(?at=table) 화면에만 보이지만 페이지 소스에는 들어가요 */
 const WIFI = { name:"feels like jazz public", password:"", open:true };
-/* ★ 이용 정보: 값을 적으면 「이용 안내」 아래에 한 줄씩 나와요. 모르면 "" 로 두기 */
-const INFO = {
-  cover:"",      // 예) "입장료·커버차지 없음"
-  payment:"",    // 예) "카드·간편결제 가능"
-  rental:"",     // 예) "대관 가능 (최대 30명) · 인스타 DM 문의"
-};
-/* ★ 자주 묻는 질문: 확인된 내용만 넣어 두었어요. 더 넣을 땐 { q:"질문", a:"답" } */
-const FAQ = [
-  { q:"재즈를 잘 몰라도 괜찮나요?", a:"네, 괜찮아요. 편하게 들으면서 술 한 잔과 이야기를 나누시면 돼요." },
-  { q:"공연은 언제 하나요?", a:"매일 1부 20:00, 2부 21:30이에요. 그날 라인업은 위 「공연 일정」과 인스타그램에서 알려드려요." },
-  { q:"신청곡은 어떻게 하나요?", a:"「신청곡 · 채팅 열기」를 누르면 돼요. 와이파이 없이 데이터로도 열리고, 신청한 곡과 한마디가 프로젝터 화면에 떠요." },
-  { q:"예약할 수 있나요?", a:"인스타그램 DM(@feelslike_jazz)으로 날짜와 인원을 알려주세요." },
-  { q:"주차는 어디에 하나요?", a:"가게 앞이 좁아서 근처 주차장이나 문 닫은 가게 앞을 이용해 주세요. 「주차 지도」에서 시간별로 볼 수 있어요." },
-  // { q:"혼자 가도 되나요?", a:"" },
-  // { q:"악기를 가져가도 되나요?", a:"" },
-];
-/* =========================================================
-   ★ 공연 일정 ★ (둘 중 편한 방법 하나)
-   ① 구글 시트: 시트를 「파일 → 공유 → 웹에 게시 → CSV」로 게시하고 그 주소를 LIVE_SHEET_CSV 에 넣기.
-      시트 첫 줄 제목: date | time | title | who | note   (date 예: 2026-11-28)
-      시트를 못 읽으면 아래 LIVE 목록을 대신 보여줘요.
-   ② 여기 LIVE 목록에 한 줄씩:
-      { date:"2026-11-28", time:"20:00", title:"블루스 나이트", who:"기타 듀오", note:"신청곡 받아요" },
-   - 지난 날짜는 저절로 숨고, 오늘부터 7일 안 일정만 보여요. 오늘 일정은 맨 위 「오늘 밤」 칸에도 나와요.
-   ========================================================= */
+/* ★ 구글 시트로 공연 일정을 쓰고 싶을 때만: 「웹에 게시 → CSV」 주소. 비워 두면 관리자 페이지 일정을 써요 */
 const LIVE_SHEET_CSV = "";
-const LIVE = [
-];
-/* ========================================================= */
-const MENU = [
-  { id:"self", tab:"셀프 5,000원", en:"SELF SERVICE", title:"맥주 · 음료 · 안주 패키지", pay:"self",
-    note:"직접 가져가신 뒤 단말기에서 셀프결제 부탁드립니다.",
-    items:[
-      { name:"모든 맥주", beer:true, prices:[["",5000]] },
-      { name:"모든 음료", prices:[["",5000]] },
-      { name:"안주 패키지", desc:"기본안주와 별도인 유료 상품", prices:[["",5000]] },
-    ],
-    tip:"기본안주는 무료 · 셀프 · 무제한 제공됩니다." },
-  { id:"special", tab:"이번 달 특별안주", en:"SPECIAL", title:"이번 달 특별안주", pay:"staff",
-    note:"직원에게 주문해 주세요.",
-    items:[
-      { name:"나초", prices:[["",20000]] },
-      { name:"피자", prices:[["",20000]] },
-    ]},
-  { id:"wine", tab:"와인", en:"WINE", title:"와인", pay:"staff",
-    note:"직원에게 주문해 주세요 · 1병 기준",
-    items:[
-      { kind:"레드와인 · 칠레", name:"카시예로 델 디아블로", sub:"리제르바 카베르네 소비뇽",
-        desc:"달지 않은 맛 · 검은 과일 향과 적당한 떫은맛", prices:[["500mL",20000],["750mL",30000]] },
-      { kind:"화이트와인 · 이탈리아", name:"칸티 모스카토 다스티",
-        desc:"달콤한 과일·꽃 향, 가벼운 탄산의 화이트 와인", prices:[["750mL",50000]] },
-    ]},
-  { id:"bottle", tab:"위스키 · 보틀", en:"BOTTLE SELECTION", title:"위스키 · 보드카 · 데킬라", pay:"staff",
-    note:"직원에게 주문해 주세요 · 1병 기준",
-    items:[
-      { kind:"위스키 · 블렌디드", name:"발렌타인 17년",
-        desc:"꿀·바닐라의 달콤한 풍미와 은은한 훈연 향, 부드러운 여운.", prices:[["",300000]] },
-      { kind:"위스키 · 싱글몰트", name:"발베니 더블우드 12년",
-        desc:"두 종류의 오크통에서 숙성한 꿀·바닐라·과일 풍미의 위스키.", prices:[["",300000]] },
-      { kind:"보드카 · 스웨덴", name:"앱솔루트 보드카",
-        desc:"은은한 곡물 향과 깔끔한 맛. 부드러운 질감과 알코올의 자극감.", prices:[["",100000]] },
-      { kind:"데킬라 · 멕시코", name:"호세 쿠엘보 에스페셜 골드",
-        desc:"은은한 아가베 향과 오크·바닐라 풍미. 가벼운 향신료 느낌과 짧은 여운.", prices:[["",150000]] },
-    ]},
-];
-/* ========================================================= */
 
-const won = n => n.toLocaleString('ko-KR') + '원';
+/*DEFAULTS-BEGIN*/
+const DEFAULTS = {
+  notice: "",
+  tagline: "대화 사이에 재즈,\n그리고 술 한 잔.",
+  intro: "재즈와 블루스 라이브를 들으며 술 한 잔과 이야기를 나누는 공간입니다.\n재즈를 잘 몰라도 좋습니다.",
+  hours: { open:"19:30", close:"23:30", sets:["20:00","21:30"] },
+  closedWeekdays: [],
+  closedDates: [],
+  gallery: [
+    { src:"photos/stage.jpg", alt:"무대와 홀 전경" },
+    { src:"photos/instruments.jpg", alt:"무대 위 기타와 색소폰" },
+    { src:"photos/table.jpg", alt:"전구 조명과 안개꽃이 놓인 테이블" },
+    { src:"photos/nachos.jpg", alt:"특별안주 나초" },
+    { src:"photos/bar.jpg", alt:"바 선반의 와인과 술" },
+    { src:"photos/wine.jpg", alt:"와인과 테이블 조명" }
+  ],
+  points: [
+    { title:"매일 라이브", text:"재즈와 블루스 연주가 1부 20:00, 2부 21:30에 열려요." },
+    { title:"신청곡", text:"듣고 싶은 곡을 휴대폰으로 신청하면 프로젝터 화면에 떠요." },
+    { title:"셀프 5,000원", text:"맥주·음료는 냉장고에서 직접 꺼내 단말기에서 결제해요." }
+  ],
+  guide: [
+    "맥주·음료·안주 패키지는 **모두 5,000원**이에요. 직접 가져가신 뒤 **수량에 맞춰 단말기에서 결제**해 주세요. 더 드실 때도 같은 방법이에요.",
+    "기본안주는 **무료**예요. 드실 만큼 덜어 가시고, 부족하면 더 가져가세요.",
+    "위스키·보드카·데킬라·와인과 이번 달 특별안주는 **직원에게 주문**해 주세요. 결제가 어려울 때도 편하게 불러주세요.",
+    "연주 중에도 편하게 대화하셔도 좋아요. 좋아하는 곡이 들리면 잠시 귀를 기울여 주세요."
+  ],
+  info: { cover:"", payment:"", rental:"" },
+  faq: [
+    { q:"재즈를 잘 몰라도 괜찮나요?", a:"네, 괜찮아요. 편하게 들으면서 술 한 잔과 이야기를 나누시면 돼요." },
+    { q:"공연은 언제 하나요?", a:"매일 1부 20:00, 2부 21:30이에요. 그날 라인업은 위 「공연 일정」과 인스타그램에서 알려드려요." },
+    { q:"신청곡은 어떻게 하나요?", a:"테이블에 있는 QR을 찍으면 「신청곡 · 채팅」이 나와요. 와이파이 없이 데이터로도 열리고, 신청한 곡과 한마디가 프로젝터 화면에 떠요." },
+    { q:"예약할 수 있나요?", a:"인스타그램 DM(@feelslike_jazz)으로 날짜와 인원을 알려주세요." },
+    { q:"주차는 어디에 하나요?", a:"가게 앞이 좁아서 근처 주차장이나 문 닫은 가게 앞을 이용해 주세요. 「주차 지도」에서 시간별로 볼 수 있어요." }
+  ],
+  live: [],
+  artists: [
+    { name:"최지용", role:"", bio:"", photo:"" },
+    { name:"이동하", role:"", bio:"", photo:"" },
+    { name:"길준규", role:"", bio:"", photo:"" }
+  ],
+  menu: [
+    { id:"self", tab:"셀프 5,000원", title:"맥주 · 음료 · 안주 패키지", pay:"self",
+      note:"직접 가져가신 뒤 단말기에서 셀프결제 부탁드립니다.",
+      items:[
+        { name:"모든 맥주", beer:true, prices:[["",5000]] },
+        { name:"모든 음료", prices:[["",5000]] },
+        { name:"안주 패키지", desc:"기본안주와 별도인 유료 상품", prices:[["",5000]] }
+      ],
+      tip:"기본안주는 무료 · 셀프 · 무제한 제공됩니다." },
+    { id:"special", tab:"이번 달 특별안주", title:"이번 달 특별안주", pay:"staff",
+      note:"직원에게 주문해 주세요.",
+      items:[
+        { name:"나초", prices:[["",20000]] },
+        { name:"피자", prices:[["",20000]] }
+      ]},
+    { id:"wine", tab:"와인", title:"와인", pay:"staff",
+      note:"직원에게 주문해 주세요 · 1병 기준",
+      items:[
+        { kind:"레드와인 · 칠레", name:"카시예로 델 디아블로", sub:"리제르바 카베르네 소비뇽",
+          desc:"달지 않은 맛 · 검은 과일 향과 적당한 떫은맛", prices:[["500mL",20000],["750mL",30000]] },
+        { kind:"화이트와인 · 이탈리아", name:"칸티 모스카토 다스티",
+          desc:"달콤한 과일·꽃 향, 가벼운 탄산의 화이트 와인", prices:[["750mL",50000]] }
+      ]},
+    { id:"bottle", tab:"위스키 · 보틀", title:"위스키 · 보드카 · 데킬라", pay:"staff",
+      note:"직원에게 주문해 주세요 · 1병 기준",
+      items:[
+        { kind:"위스키 · 블렌디드", name:"발렌타인 17년",
+          desc:"꿀·바닐라의 달콤한 풍미와 은은한 훈연 향, 부드러운 여운.", prices:[["",300000]] },
+        { kind:"위스키 · 싱글몰트", name:"발베니 더블우드 12년",
+          desc:"두 종류의 오크통에서 숙성한 꿀·바닐라·과일 풍미의 위스키.", prices:[["",300000]] },
+        { kind:"보드카 · 스웨덴", name:"앱솔루트 보드카",
+          desc:"은은한 곡물 향과 깔끔한 맛. 부드러운 질감과 알코올의 자극감.", prices:[["",100000]] },
+        { kind:"데킬라 · 멕시코", name:"호세 쿠엘보 에스페셜 골드",
+          desc:"은은한 아가베 향과 오크·바닐라 풍미. 가벼운 향신료 느낌과 짧은 여운.", prices:[["",150000]] }
+      ]}
+  ]
+};
+/*DEFAULTS-END*/
+
+/* ---------- content.json 읽기 (못 읽으면 예비 값) ---------- */
+let C = DEFAULTS;
+try{
+  const ctl=new AbortController(); const timer=setTimeout(()=>ctl.abort(),4000);
+  const r=await fetch('content.json',{cache:'no-store',signal:ctl.signal}); clearTimeout(timer);
+  if(r.ok){ const j=await r.json(); if(j&&typeof j==='object') C={...DEFAULTS,...j}; }
+}catch(e){}
+const arr=(v,d)=>Array.isArray(v)?v:d;
+const HOURS={...DEFAULTS.hours,...(C.hours||{})}; HOURS.sets=arr(HOURS.sets,DEFAULTS.hours.sets).filter(Boolean);
+const CLOSED_WEEKDAYS=arr(C.closedWeekdays,[]).map(Number);
+const CLOSED_DATES=arr(C.closedDates,[]);
+const INFO={...DEFAULTS.info,...(C.info||{})};
+const FAQ=arr(C.faq,DEFAULTS.faq);
+const LIVE=arr(C.live,[]);
+const ARTISTS=arr(C.artists,DEFAULTS.artists).filter(a=>a&&String(a.name||'').trim());
+const MENU=arr(C.menu,DEFAULTS.menu).filter(c=>c&&c.id&&Array.isArray(c.items));
+const SETS_TEXT=HOURS.sets.map((t,i)=>`${i+1}부 ${t}`).join(' · ');
+const INSTA='https://instagram.com/feelslike_jazz';
+
+const won = n => (Number(n)||0).toLocaleString('ko-KR') + '원';
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const br = s => esc(s).replace(/\n/g,'<br>');
+const bold = s => esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
 const AT_TABLE = new URLSearchParams(location.search).get('at')==='table';
 const DAY=['일','월','화','수','목','금','토'];
 const ymd=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 const toMin=t=>{const [h,m]=String(t).split(':').map(Number);return h*60+(m||0);};
 const isClosed=d=>CLOSED_WEEKDAYS.includes(d.getDay())||CLOSED_DATES.includes(ymd(d));
+const $=id=>document.getElementById(id);
 
-/* ---------- 테이블 QR 입구: 메뉴·이용 안내·신청곡을 앞으로 ---------- */
+/* ---------- 아이콘 (선 그림, 글자 색을 따라가요) ---------- */
+const ICON_PATH={
+  calendar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+  photo:'<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="M21 16l-5-5-9 9"/>',
+  pin:'<path d="M12 21s7-6.2 7-11.5a7 7 0 0 0-14 0C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
+  music:'<path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/>',
+  wifi:'<path d="M2.5 9.5a15 15 0 0 1 19 0M5.5 13a10 10 0 0 1 13 0M8.8 16.3a5 5 0 0 1 6.4 0"/><circle cx="12" cy="19.5" r="1" fill="currentColor" stroke="none"/>',
+  glass:'<path d="M7 3h10l-1 6a4 4 0 0 1-8 0L7 3zM12 13v8M8 21h8"/>',
+  parking:'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M10 16.5V7.5h3a2.75 2.75 0 0 1 0 5.5h-3"/>',
+  insta:'<rect x="4" y="4" width="16" height="16" rx="4.5"/><circle cx="12" cy="12" r="3.5"/><circle cx="16.6" cy="7.4" r=".9" fill="currentColor" stroke="none"/>',
+  bell:'<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15L6 16zM10 21h4"/>',
+};
+const icon=n=>`<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON_PATH[n]||''}</svg>`;
+document.querySelectorAll('[data-ic]').forEach(el=>el.insertAdjacentHTML('afterbegin',icon(el.dataset.ic)));
+
+/* ---------- 소개 글 · 공지 · 사진 ---------- */
+if(C.tagline) $('tagline').innerHTML=br(C.tagline);
+if(C.intro) $('intro').innerHTML=br(C.intro);
+if(C.notice){ $('notice').innerHTML=icon('bell')+`<span>${br(C.notice)}</span>`; $('notice').hidden=false; }
+const photos=arr(C.gallery,DEFAULTS.gallery).filter(p=>p&&/^photos\/[\w.\-]+$/.test(p.src||''));
+$('gallery').innerHTML=photos.map(p=>`<img src="${esc(p.src)}" alt="${esc(p.alt||'가게 사진')}" loading="lazy" tabindex="0" role="button">`).join('');
+$('about').querySelector('.gallery').hidden=!photos.length;
+$('points').innerHTML=arr(C.points,DEFAULTS.points).filter(p=>p&&(p.title||p.text)).map(p=>`<li><b>${esc(p.title)}</b>${esc(p.text)}</li>`).join('');
+$('guideList').innerHTML=arr(C.guide,DEFAULTS.guide).filter(Boolean).map(g=>`<li><span>${bold(g)}</span></li>`).join('');
+$('liveNote').textContent=`연주 ${HOURS.sets.join(' · ')} · 일정은 바뀔 수 있어요.`;
+$('artistList').innerHTML=ARTISTS.map(a=>`<div class="artist">
+  ${/^photos\/[\w.\-]+$/.test(a.photo||'')?`<img class="ph" src="${esc(a.photo)}" alt="${esc(a.name)}" loading="lazy">`:`<div class="ph" aria-hidden="true">${esc(String(a.name).trim().charAt(0))}</div>`}
+  <div><div class="n">${esc(a.name)}</div>${a.role?`<div class="r">${esc(a.role)}</div>`:''}${a.bio?`<div class="bio">${br(a.bio)}</div>`:''}</div></div>`).join('');
+$('artists').hidden=!ARTISTS.length;
+$('visitHours').textContent=`매일 ${HOURS.open} – ${HOURS.close} · 예약·문의는 인스타그램 DM`;
+$('footHours').textContent=`매일 ${HOURS.open} – ${HOURS.close} · 연주 ${SETS_TEXT}`;
+/* 사진을 누르면 크게 보기 */
+const lb=$('lightbox');
+function openPhoto(img){ lb.querySelector('img').src=img.src; lb.querySelector('p').textContent=img.alt; lb.classList.add('show'); }
+$('gallery').addEventListener('click',e=>{ if(e.target.tagName==='IMG') openPhoto(e.target); });
+$('gallery').addEventListener('keydown',e=>{ if(e.target.tagName==='IMG'&&(e.key==='Enter'||e.key===' ')){ e.preventDefault(); openPhoto(e.target); } });
+lb.addEventListener('click',()=>lb.classList.remove('show'));
+addEventListener('keydown',e=>{ if(e.key==='Escape') lb.classList.remove('show'); });
+
+/* ---------- 들어온 길에 따라 순서 바꾸기 ---------- */
 const mainEl=document.querySelector('main');
 if(AT_TABLE){
-  document.getElementById('tableNote').hidden=false;
-  ['wifi','request','guide','menu'].forEach(id=>mainEl.insertBefore(document.getElementById(id),document.getElementById('tableNote').nextSibling));
+  /* 테이블 QR: 메뉴 → 이용 안내 → 신청곡 → 와이파이가 먼저 */
+  $('tableNote').hidden=false;
+  ['wifi','request','guide','menu'].forEach(id=>mainEl.insertBefore($(id),$('tableNote').nextSibling));
 }else{
-  /* 웹(인스타·지도·검색·명함 주소)으로 들어오면 메뉴판은 숨겨요. 메뉴는 테이블 QR(?at=table)로 들어올 때만 보여요. */
-  document.getElementById('menu').hidden=true;
+  /* 웹(인스타·지도·검색·명함): 메뉴판과 신청곡·채팅은 숨기고(테이블 QR에서만 보여요), 오시는 길을 이용 안내보다 앞에 */
+  $('menu').hidden=true;
+  $('request').hidden=true;
+  mainEl.insertBefore($('visit'),$('guide'));
 }
-document.getElementById('quick').innerHTML=(AT_TABLE
-  ? [['menu','메뉴 · 주문','담고 결제 안내'],['request','신청곡','와이파이 없이도 OK'],['wifi','와이파이','누르면 연결']]
-  : [['live','공연 일정','오늘 · 이번 주'],['about','가게 모습','사진 · 소개'],['visit','오시는 길','지도 · 주차']]
-).map(([id,t,sm])=>`<a href="#${id}">${t}<small>${sm}</small></a>`).join('');
+$('quick').innerHTML=(AT_TABLE
+  ? [['menu','glass','메뉴 · 주문','담고 결제 안내'],['request','music','신청곡','와이파이 없이도 OK'],['wifi','wifi','Free WIFI',WIFI.name]]
+  : [['live','calendar','공연 일정','오늘 · 이번 주'],['about','photo','가게 모습','사진 · 소개'],['visit','pin','오시는 길','지도 · 주차']]
+).map(([id,ic,t,sm])=>`<a href="#${id}">${icon(ic)}${t}<small>${sm}</small></a>`).join('');
 
-/* ---------- 위쪽 탭 (5개) ---------- */
-const TAB_IDS=AT_TABLE?['menu','guide','request','wifi','live','visit']:['live','about','guide','request','wifi','visit'];
-const TAB_NAME={live:'공연',about:'가게 모습',menu:'메뉴',guide:'이용 안내',request:'신청곡',wifi:'와이파이',visit:'오시는 길'};
-document.getElementById('tabs').innerHTML=TAB_IDS.map(id=>`<a href="#${id}">${TAB_NAME[id]}</a>`).join('');
+/* ---------- 위쪽 탭 ---------- */
+const TAB_IDS=(AT_TABLE?['menu','guide','request','wifi','live','artists','visit']:['live','artists','about','visit','guide','request','wifi']).filter(id=>!$(id).hidden);
+const TAB_NAME={live:'공연',artists:'아티스트',about:'가게 모습',menu:'메뉴',guide:'이용 안내',request:'신청곡',wifi:'Free WIFI',visit:'오시는 길'};
+$('tabs').innerHTML=TAB_IDS.map(id=>`<a href="#${id}">${TAB_NAME[id]}</a>`).join('');
 
 /* ---------- 메뉴 ---------- */
-document.getElementById('menuChips').innerHTML=MENU.map(c=>`<a href="#${c.id}">${esc(c.tab)}</a>`).join('');
-document.getElementById('menuList').innerHTML = MENU.map(c=>`
-  <div class="cat" id="${c.id}">
+$('menuChips').innerHTML=MENU.map(c=>`<a href="#${esc(c.id)}">${esc(c.tab||c.title)}</a>`).join('');
+$('menuList').innerHTML = MENU.map(c=>`
+  <div class="cat" id="${esc(c.id)}">
     <h3 class="h3">${esc(c.title)}</h3>
     ${c.note?`<p class="sec-note">${esc(c.note)}</p>`:''}
-    <div class="card">${c.items.map(it=>`
+    <div class="card">${c.items.map((it,ii)=>`
       <div class="item">
         <div class="info-col">
           ${it.kind?`<div class="kind">${esc(it.kind)}</div>`:''}
@@ -433,8 +533,8 @@ document.getElementById('menuList').innerHTML = MENU.map(c=>`
         </div>
         <div class="prices">
           ${it.old?`<span class="old">${won(it.old)}</span>`:''}
-          ${it.prices.map(([s,p],pi)=>`<div class="price">${s?`<span class="size">${esc(s)}</span>`:''}${won(p)}</div>
-          ${c.pay==='self'?`<div class="selfpay">셀프결제</div>`:`<div class="qty" data-k="${c.id}|${c.items.indexOf(it)}|${pi}">${s?`<span class="size">${esc(s)}</span>`:''}<button class="minus" aria-label="빼기">−</button><span>0</span><button class="plus" aria-label="담기">+</button></div>`}`).join('')}
+          ${arr(it.prices,[]).map(([s,p],pi)=>`<div class="price">${s?`<span class="size">${esc(s)}</span>`:''}${won(p)}</div>
+          ${c.pay==='self'?`<div class="selfpay">셀프결제</div>`:`<div class="qty" data-k="${esc(c.id)}|${ii}|${pi}">${s?`<span class="size">${esc(s)}</span>`:''}<button class="minus" aria-label="빼기">−</button><span>0</span><button class="plus" aria-label="담기">+</button></div>`}`).join('')}
         </div>
       </div>`).join('')}
     </div>
@@ -443,34 +543,15 @@ document.getElementById('menuList').innerHTML = MENU.map(c=>`
 
 /* ---------- 이용 정보 · 와이파이 · FAQ ---------- */
 const infoRows=[['입장료',INFO.cover],['결제',INFO.payment],['대관',INFO.rental]].filter(([,v])=>v);
-document.getElementById('extraInfo').innerHTML=infoRows.map(([k,v])=>`<div><b>${k}</b>${esc(v)}</div>`).join('');
-document.getElementById('guestBtn').href = GUEST_URL;
-document.getElementById('guestLan').href = GUEST_URL_LAN;
-document.getElementById('wifiInfo').innerHTML = WIFI.name
-  ? `<div><b>이름</b><span class="pw">${esc(WIFI.name)}</span></div>`+(WIFI.open
-      ? `<div><b>비밀번호</b>없어요</div>`
-      : WIFI.password
-        ? (AT_TABLE?`<div><b>비밀번호</b><span class="pw">${esc(WIFI.password)}</span></div>`:`<div><b>비밀번호</b>테이블의 QR을 찍거나 직원에게 물어봐 주세요.</div>`)
-        : `<div><b>비밀번호</b>직원에게 물어봐 주세요.</div>`)
-  : `<div><b>와이파이</b>이름과 비밀번호는 직원에게 물어봐 주세요.</div>`;
-/* 「와이파이 연결하기」: 웹페이지가 휴대폰 와이파이를 직접 켜 줄 수는 없어서,
-   안드로이드는 와이파이 설정 화면을 바로 열고, 아이폰은 순서를 보여줘요. */
-(function wifiConnect(){
-  const ua=navigator.userAgent; const android=/Android/i.test(ua); const ios=/iPhone|iPad|iPod/i.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1);
-  const btn=document.getElementById('wifiBtn'), box=document.getElementById('wifiSteps');
-  const name=esc(WIFI.name||'가게 와이파이');
-  const steps=android
-    ? `<ol><li>와이파이 설정 화면이 열려요.</li><li>목록에서 <b>${name}</b>을 누르세요.</li><li>연결되면 뒤로 가기로 돌아오세요.</li></ol>`
-    : ios
-    ? `<ol><li><b>설정</b> 앱을 여세요.</li><li><b>Wi-Fi</b>를 누르세요.</li><li>목록에서 <b>${name}</b>을 누르세요.${WIFI.open?' (비밀번호 없음)':''}</li></ol>`
-    : `<ol><li>휴대폰 와이파이 설정을 여세요.</li><li>목록에서 <b>${name}</b>을 누르세요.</li></ol>`;
-  box.innerHTML=steps+(WIFI.name?`<button type="button" id="wifiCopy">와이파이 이름 복사</button>`:'');
-  if(android) btn.href='intent:#Intent;action=android.settings.WIFI_SETTINGS;end';
-  btn.addEventListener('click',e=>{ box.hidden=false; if(!android) e.preventDefault(); });
-  const cp=document.getElementById('wifiCopy');
-  if(cp) cp.onclick=()=>{ (navigator.clipboard?navigator.clipboard.writeText(WIFI.name):Promise.reject()).then(()=>{cp.textContent='복사했어요';}).catch(()=>{cp.textContent=WIFI.name;}); };
-})();
-document.getElementById('faqList').innerHTML=FAQ.map(f=>`<details class="faq"><summary>${esc(f.q)}</summary><p>${esc(f.a)}</p></details>`).join('');
+$('extraInfo').innerHTML=infoRows.map(([k,v])=>`<div><b>${k}</b>${esc(v)}</div>`).join('');
+$('guestBtn').href = GUEST_URL;
+$('guestLan').href = GUEST_URL_LAN;
+/* Free WIFI: 이름 한 줄만. 비밀번호가 생기면(WIFI.open:false) 테이블 QR 화면에서만 한 줄 더 보여요 */
+$('wifiInfo').innerHTML = `<div>${icon('wifi')} <span class="pw">${esc(WIFI.name)}</span></div>`
+  +(WIFI.open||!WIFI.password?'':`<div><b>PW</b>${AT_TABLE?`<span class="pw">${esc(WIFI.password)}</span>`:'직원에게 물어봐 주세요.'}</div>`);
+$('wifi').hidden=!WIFI.name;
+$('faqList').innerHTML=FAQ.filter(f=>f&&f.q).map(f=>`<details class="faq"><summary>${esc(f.q)}</summary><p>${br(f.a)}</p></details>`).join('');
+$('faq').hidden=!FAQ.some(f=>f&&f.q);
 
 /* ---------- 공연 일정 + 오늘 밤 ---------- */
 function parseCSV(t){const rows=[];let r=[],f='',q=false;for(let i=0;i<t.length;i++){const c=t[i];
@@ -480,29 +561,36 @@ function parseCSV(t){const rows=[];let r=[],f='',q=false;for(let i=0;i<t.length;
   const h=(rows.shift()||[]).map(x=>x.trim().toLowerCase());
   return rows.filter(x=>x.some(v=>v.trim())).map(x=>Object.fromEntries(h.map((k,i)=>[k,(x[i]||'').trim()])));}
 function renderLive(list){
+  /* 오늘부터 7일을 하루 한 줄씩: 쉬는 날은 「휴무」, 일정이 있으면 장르·아티스트, 없으면 기본 안내 */
   const now=new Date(); const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
-  const until=new Date(today); until.setDate(until.getDate()+6);
-  const parse=s=>{const [y,m,d]=String(s).split('-').map(Number);return new Date(y,(m||1)-1,d||1);};
-  const up=list.map(e=>({...e,dt:parse(e.date)})).filter(e=>!isNaN(e.dt)&&e.dt>=today&&e.dt<=until)
-    .sort((a,b)=>a.dt-b.dt||String(a.time).localeCompare(String(b.time)));
-  const box=document.getElementById('liveList');
-  box.innerHTML=up.length?up.map(e=>{const isToday=+e.dt===+today;
-    return `<div class="live"><div class="d${isToday?' today':''}"><b>${e.dt.getMonth()+1}/${e.dt.getDate()}</b><span>${isToday?'오늘':DAY[e.dt.getDay()]}</span></div>
-      <div><div class="t">${esc(e.title||'라이브')}</div><div class="w">${[e.time,e.who].filter(Boolean).map(esc).join(' · ')}${e.note?`<br>${esc(e.note)}`:''}</div></div></div>`;}).join('')
-    :`<div class="live"><div class="d"><b>1부</b><span>매일</span></div><div><div class="t">${HOURS.sets[0]}</div><div class="w">재즈 · 블루스 라이브</div></div></div>
-      <div class="live"><div class="d"><b>2부</b><span>매일</span></div><div><div class="t">${HOURS.sets[1]}</div><div class="w">이번 주 라인업은 인스타그램에서 알려드려요.</div></div></div>`;
-  /* 오늘 밤 */
+  const byDate={}; list.forEach(e=>{ if(e&&e.date&&!byDate[e.date]) byDate[e.date]=e; });
+  const days=[...Array(7)].map((_,i)=>{ const d=new Date(today); d.setDate(d.getDate()+i); return {d,e:byDate[ymd(d)]||null,closed:isClosed(d)}; });
+  const genreOf=e=>(e&&(e.genre||e.title))||'재즈 · 블루스 라이브';
+  const whoOf=e=>e?(Array.isArray(e.artists)&&e.artists.length?e.artists.join(' · '):(e.who||'')):'';
+  const md=d=>`${d.getMonth()+1}/${d.getDate()}`;
+  $('liveList').innerHTML=days.map(({d,e,closed},i)=>`<div class="live${closed?' off':''}">
+      <div class="d${i===0&&!closed?' today':''}"><b>${md(d)}</b><span>${i===0?'오늘':DAY[d.getDay()]}</span></div>
+      <div>${closed
+        ? `<div class="t"><span class="rest">휴무</span></div><div class="w">${e&&e.note?esc(e.note):'쉬는 날이에요.'}</div>`
+        : `<div class="t">${esc(genreOf(e))}</div>${whoOf(e)||(e&&e.note)?`<div class="w">${[whoOf(e),e&&e.note].filter(Boolean).map(esc).join('<br>')}</div>`:''}`}</div></div>`).join('');
+  /* 이번 주 휴무 안내 */
+  const offs=days.filter(x=>x.closed).map(x=>`${md(x.d)}(${DAY[x.d.getDay()]})`);
+  const cn=$('closedNote'); cn.hidden=!offs.length; cn.innerHTML=offs.length?`${icon('bell')} <b style="color:inherit">이번 주 휴무</b> · ${offs.join(', ')}`:'';
+  /* 오늘 밤: 영업 시간과 쉬는 날에 맞춰 저절로 바뀌어요 */
   const nowM=now.getHours()*60+now.getMinutes(); const o=toMin(HOURS.open), c=toMin(HOURS.close);
-  const tonight=up.filter(e=>+e.dt===+today);
-  let status, live=false;
-  if(isClosed(today)) status='오늘은 쉬어요';
-  else if(nowM<o) status=`오늘 ${HOURS.open}에 문 열어요`;
-  else if(nowM<c){ status='지금 영업 중'; live=HOURS.sets.some(t=>nowM>=toMin(t)&&nowM<toMin(t)+75); }
-  else status=`오늘 영업은 끝났어요 · 내일 ${HOURS.open}`;
-  const acts=tonight.length?tonight.map(e=>`<div class="act">${esc(e.time||'')} <b>${esc(e.title||'라이브')}</b>${e.who?` · ${esc(e.who)}`:''}</div>`).join('')
-    :(isClosed(today)?'':`<div class="act">1부 <b>${HOURS.sets[0]}</b> · 2부 <b>${HOURS.sets[1]}</b></div>`);
-  document.getElementById('tonight').innerHTML=`<div class="tn-head"><span class="tn-en">TONIGHT</span><span class="tn-st${live?' on':''}">${live?'● LIVE · ':''}${status}</span></div>${acts}
-    <div class="tn-sub">매일 ${HOURS.open} – ${HOURS.close} · 예약·문의 <a href="https://instagram.com/feelslike_jazz" target="_blank" rel="noopener">@feelslike_jazz</a></div>`;
+  const t0=days[0]; let status, live=false, acts;
+  if(t0.closed){
+    status='오늘은 휴무';
+    acts=`<div class="act">지금은 영업시간이 아닙니다.<br>예약은 <a href="${INSTA}" target="_blank" rel="noopener">인스타그램 DM</a>으로 주세요.</div>`;
+  }else{
+    if(nowM<o) status=`오늘 ${HOURS.open}에 문 열어요`;
+    else if(nowM<c){ status='지금 영업 중'; live=HOURS.sets.some(t=>nowM>=toMin(t)&&nowM<toMin(t)+75); }
+    else status='오늘 영업은 끝났어요';
+    acts=`<div class="act"><b>${esc(genreOf(t0.e))}</b>${whoOf(t0.e)?` · ${esc(whoOf(t0.e))}`:''}</div>`;
+  }
+  $('tonight').innerHTML=`<div class="tn-head"><span class="tn-en">TONIGHT</span><span class="tn-st${live?' on':''}">${live?'● LIVE · ':''}${status}</span></div>${acts}
+    <div class="tn-sub">영업 ${HOURS.open} – ${HOURS.close} · 연주 ${HOURS.sets.join(' · ')} · 예약 <a href="${INSTA}" target="_blank" rel="noopener">@feelslike_jazz</a></div>
+    ${offs.length&&!(offs.length===1&&t0.closed)?`<div class="tn-closed">이번 주 휴무 · ${offs.join(', ')}</div>`:''}`;
 }
 renderLive(LIVE);
 if(LIVE_SHEET_CSV){
@@ -512,7 +600,7 @@ if(LIVE_SHEET_CSV){
 /* ---------- 주문 담기 + 결제 방법 안내 ---------- */
 const cart={};
 function itemOf(k){const [cid,ii,pi]=k.split('|');const c=MENU.find(x=>x.id===cid);const it=c.items[+ii];const [size,price]=it.prices[+pi];
-  return {c,it,size,price,label:it.name+(size?' '+size:'')};}
+  return {c,it,size,price:Number(price)||0,label:it.name+(size?' '+size:'')};}
 function lines(){return Object.entries(cart).filter(([,n])=>n>0).map(([k,n])=>({k,n,...itemOf(k)}));}
 function decide(ls){
   const beer=ls.filter(l=>l.it.beer).reduce((a,l)=>a+l.n,0);
@@ -525,17 +613,17 @@ function decide(ls){
 function refresh(){
   document.querySelectorAll('.qty').forEach(q=>{q.querySelector('span:not(.size)').textContent=cart[q.dataset.k]||0;});
   const ls=lines(); const n=ls.reduce((a,l)=>a+l.n,0); const sum=ls.reduce((a,l)=>a+l.n*l.price,0);
-  document.getElementById('bar').classList.toggle('show',n>0); document.body.classList.toggle('has-bar',n>0);
-  document.getElementById('barCount').textContent=`${n}개 · ${won(sum)}`;
+  $('bar').classList.toggle('show',n>0); document.body.classList.toggle('has-bar',n>0);
+  $('barCount').textContent=`${n}개 · ${won(sum)}`;
 }
-document.getElementById('menuList').addEventListener('click',e=>{
+$('menuList').addEventListener('click',e=>{
   const b=e.target.closest('.qty button'); if(!b) return;
   const k=b.parentElement.dataset.k; const v=(cart[k]||0)+(b.classList.contains('plus')?1:-1);
   cart[k]=Math.max(0,Math.min(99,v)); refresh();
 });
-function showSheet(on){['sheet','sheetBg'].forEach(id=>document.getElementById(id).classList.toggle('show',on));}
-document.getElementById('sheetBg').onclick=()=>showSheet(false);
-document.getElementById('openSheet').onclick=()=>{
+function showSheet(on){['sheet','sheetBg'].forEach(id=>$(id).classList.toggle('show',on));}
+$('sheetBg').onclick=()=>showSheet(false);
+$('openSheet').onclick=()=>{
   const ls=lines(); if(!ls.length) return;
   const sum=ls.reduce((a,l)=>a+l.n*l.price,0); const cnt=ls.reduce((a,l)=>a+l.n,0); const d=decide(ls);
   const list=`<div class="olist">${ls.map(l=>`<div><span>${esc(l.label)} × ${l.n}</span><span>${won(l.n*l.price)}</span></div>`).join('')}<div><span>합계</span><span>${won(sum)}</span></div></div>`;
@@ -547,9 +635,9 @@ document.getElementById('openSheet').onclick=()=>{
       <li>냉장고·안주 코너에서 <b>직접 가져가세요.</b></li><li>단말기에서 <b>${cnt}개, ${won(sum)}</b>을 결제해 주세요.</li><li>더 드실 때도 같은 방법으로 결제해 주세요.</li></ol>
       <p class="why">결제가 어려우시면 편하게 직원을 불러주세요.</p></div>`;
   const send=d.post&&ORDER_URL;
-  document.getElementById('sheetIn').innerHTML=pay+list+`<p class="omsg" id="omsg" hidden></p><div class="row"><button id="clr">다시 고르기</button><button class="main" id="cls">${send?'주문 보내기':'확인'}</button></div>`;
-  document.getElementById('cls').onclick=send?()=>sendOrder(ls):()=>showSheet(false);
-  document.getElementById('clr').onclick=()=>{for(const k in cart) cart[k]=0; refresh(); showSheet(false);};
+  $('sheetIn').innerHTML=pay+list+`<p class="omsg" id="omsg" hidden></p><div class="row"><button id="clr">다시 고르기</button><button class="main" id="cls">${send?'주문 보내기':'확인'}</button></div>`;
+  $('cls').onclick=send?()=>sendOrder(ls):()=>showSheet(false);
+  $('clr').onclick=()=>{for(const k in cart) cart[k]=0; refresh(); showSheet(false);};
   showSheet(true);
 };
 refresh();
@@ -558,7 +646,7 @@ refresh();
 let sending=false;
 async function sendOrder(ls){
   if(sending) return;
-  const msg=document.getElementById('omsg'); const btn=document.getElementById('cls'); const tbl=document.getElementById('tblNo');
+  const msg=$('omsg'); const btn=$('cls'); const tbl=$('tblNo');
   const say=(t,bad)=>{msg.hidden=false;msg.className='omsg'+(bad?' bad':'');msg.innerHTML=t;};
   const table=(tbl.value||'').trim();
   if(!table){say('테이블 번호를 적어 주세요.',true);tbl.focus();return;}
@@ -569,26 +657,34 @@ async function sendOrder(ls){
     const j=await r.json().catch(()=>({}));
     if(!r.ok||!j.ok){const er=new Error(j.error||'');er.fromShop=true;throw er;}
     for(const k in cart) cart[k]=0; refresh();
-    document.getElementById('sheetIn').innerHTML=`<div class="pay post"><h3>주문이 들어갔어요 (${esc(table)}번 테이블)</h3><ol>
+    $('sheetIn').innerHTML=`<div class="pay post"><h3>주문이 들어갔어요 (${esc(table)}번 테이블)</h3><ol>
       <li>주문하신 것은 자리로 가져다 드려요.</li><li>결제는 <b>나가실 때 한 번에</b> 해 주세요.</li></ol>
       <p class="why">주문 번호 #${esc(j.no)} · 혹시 오래 걸리면 편하게 직원을 불러주세요.</p></div>
       <div class="row"><button class="main" id="cls">확인</button></div>`;
-    document.getElementById('cls').onclick=()=>showSheet(false);
+    $('cls').onclick=()=>showSheet(false);
   }catch(e){
     say((e.fromShop&&e.message?esc(e.message)+'<br>':'')+'주문이 전달되지 않았어요. <b>직원을 불러 이 화면을 보여주세요.</b>',true);
     btn.disabled=false; btn.textContent='다시 보내기';
   }finally{sending=false;}
 }
 
+/* ---------- 스크롤 위치에 맞춰 탭 표시 ---------- */
 const links=[...document.querySelectorAll('.tabs a')];
 function mark(){
-  const ids=[...document.querySelectorAll('main > section')].map(x=>x.id);
-  let cur=ids[0]; ids.forEach(id=>{ if(document.getElementById(id).getBoundingClientRect().top<120) cur=id; });
+  const ids=[...document.querySelectorAll('main > section')].filter(x=>!x.hidden).map(x=>x.id);
+  let cur=ids[0]; ids.forEach(id=>{ if($(id).getBoundingClientRect().top<120) cur=id; });
   if((innerHeight+scrollY)>=document.body.scrollHeight-4) cur=ids[ids.length-1];
-  const tabOf=id=>TAB_IDS.includes(id)?id:(id==='about'?'live':id==='faq'?'visit':null);
-  links.forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+tabOf(cur)));
+  const tabOf=id=>TAB_IDS.includes(id)?id:(id==='about'?'live':id==='faq'?TAB_IDS[TAB_IDS.length-1]:null);
+  links.forEach(a=>{ const on=a.getAttribute('href')==='#'+tabOf(cur); a.classList.toggle('on',on);
+    if(on&&a.scrollIntoView&&!a.dataset.seen){ links.forEach(x=>delete x.dataset.seen); a.dataset.seen=1; a.parentElement.scrollTo({left:a.offsetLeft-60,behavior:'smooth'}); } });
 }
-addEventListener('scroll',mark,{passive:true}); mark();
+addEventListener('scroll',mark,{passive:true});
+
+/* 다 그렸으면 화면 보이기 (+ 주소에 #칸 이름이 있으면 그 칸으로) */
+document.documentElement.classList.remove('wait');
+if(location.hash.length>1){ const t=document.getElementById(decodeURIComponent(location.hash.slice(1))); if(t) t.scrollIntoView(); }
+mark();
+})();
 </script>
 </body>
 </html>

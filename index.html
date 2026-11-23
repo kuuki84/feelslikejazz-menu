@@ -162,6 +162,12 @@
   .extra b,.wifi b{color:var(--gold);font-size:12px;margin-right:8px}
   .wifi{padding:14px 16px;display:grid;gap:6px}
   .wifi .pw{font-weight:700;letter-spacing:.04em;user-select:all}
+  .wifi-steps{margin-top:10px;background:var(--card);border:1px solid var(--gold);border-radius:10px;padding:12px 16px;font-size:14px;line-height:1.8}
+  .wifi-steps ol{padding-left:18px}
+  .wifi-steps button{margin-top:8px;font-family:inherit;font-size:13px;background:transparent;color:var(--gold);border:1px solid var(--gold);border-radius:999px;padding:6px 12px;cursor:pointer}
+  .wifi-qr{display:flex;gap:14px;align-items:center;margin-top:14px}
+  .wifi-qr img{flex:none;border-radius:8px;background:#fff}
+  .wifi-qr p{font-size:13px;color:var(--sub);line-height:1.7}
   .faq{border-bottom:1px solid var(--line);padding:4px 0}
   .faq:last-child{border-bottom:0}
   .faq summary{cursor:pointer;font-size:15px;font-weight:700;padding:10px 0;list-style:none}
@@ -233,13 +239,24 @@
     <div class="extra" id="extraInfo"></div>
   </section>
 
-  <section id="request" data-tab="신청곡·와이파이">
-    <div class="sec-en">SONG REQUEST · WI-FI</div>
-    <h2>신청곡 · 와이파이</h2>
+  <section id="request" data-tab="신청곡">
+    <div class="sec-en">SONG REQUEST</div>
+    <h2>신청곡 · 채팅</h2>
     <p class="sec-note">듣고 싶은 곡을 신청하거나 한마디를 남기면 프로젝터 화면에 보여요.</p>
-    <div class="card wifi" id="wifi"></div>
     <a class="btn" id="guestBtn" href="#">신청곡 · 채팅 열기</a>
     <p class="small">와이파이 없이 휴대폰 데이터로도 열려요. 안 열리면 가게 와이파이에 연결하고 <a id="guestLan" href="#" style="color:var(--gold)">가게 와이파이용 화면</a>을 눌러 주세요.</p>
+  </section>
+
+  <section id="wifi" data-tab="와이파이">
+    <div class="sec-en">FREE WI-FI</div>
+    <h2>와이파이</h2>
+    <div class="card wifi" id="wifiInfo"></div>
+    <a class="btn" id="wifiBtn" href="#">와이파이 연결하기</a>
+    <div class="wifi-steps" id="wifiSteps" hidden></div>
+    <div class="wifi-qr">
+      <img src="wifi-qr.svg" alt="와이파이 연결 QR 코드" width="132" height="132">
+      <p>다른 휴대폰 <b>카메라로 이 QR을 찍으면</b> 바로 연결돼요.<br>테이블 카드의 와이파이 QR도 같아요.</p>
+    </div>
   </section>
 
   <section id="visit" data-tab="오시는 길">
@@ -386,16 +403,16 @@ const isClosed=d=>CLOSED_WEEKDAYS.includes(d.getDay())||CLOSED_DATES.includes(ym
 const mainEl=document.querySelector('main');
 if(AT_TABLE){
   document.getElementById('tableNote').hidden=false;
-  ['request','guide','menu'].forEach(id=>mainEl.insertBefore(document.getElementById(id),document.getElementById('tableNote').nextSibling));
+  ['wifi','request','guide','menu'].forEach(id=>mainEl.insertBefore(document.getElementById(id),document.getElementById('tableNote').nextSibling));
 }
 document.getElementById('quick').innerHTML=(AT_TABLE
-  ? [['menu','메뉴 · 주문','담고 결제 안내'],['request','신청곡','와이파이 없이도 OK'],['guide','화장실 · 흡연실','이용 안내']]
+  ? [['menu','메뉴 · 주문','담고 결제 안내'],['request','신청곡','와이파이 없이도 OK'],['wifi','와이파이','누르면 연결']]
   : [['live','공연 일정','오늘 · 이번 주'],['menu','메뉴','셀프 5,000원'],['visit','오시는 길','지도 · 주차']]
 ).map(([id,t,sm])=>`<a href="#${id}">${t}<small>${sm}</small></a>`).join('');
 
 /* ---------- 위쪽 탭 (5개) ---------- */
-const TAB_IDS=AT_TABLE?['menu','guide','request','live','visit']:['live','menu','guide','request','visit'];
-const TAB_NAME={live:'공연',menu:'메뉴',guide:'이용 안내',request:'신청곡·와이파이',visit:'오시는 길'};
+const TAB_IDS=AT_TABLE?['menu','guide','request','wifi','live','visit']:['live','menu','guide','request','wifi','visit'];
+const TAB_NAME={live:'공연',menu:'메뉴',guide:'이용 안내',request:'신청곡',wifi:'와이파이',visit:'오시는 길'};
 document.getElementById('tabs').innerHTML=TAB_IDS.map(id=>`<a href="#${id}">${TAB_NAME[id]}</a>`).join('');
 
 /* ---------- 메뉴 ---------- */
@@ -426,13 +443,30 @@ const infoRows=[['입장료',INFO.cover],['결제',INFO.payment],['대관',INFO.
 document.getElementById('extraInfo').innerHTML=infoRows.map(([k,v])=>`<div><b>${k}</b>${esc(v)}</div>`).join('');
 document.getElementById('guestBtn').href = GUEST_URL;
 document.getElementById('guestLan').href = GUEST_URL_LAN;
-document.getElementById('wifi').innerHTML = WIFI.name
-  ? `<div><b>와이파이</b><span class="pw">${esc(WIFI.name)}</span></div>`+(WIFI.open
-      ? `<div><b>비밀번호</b>없어요. 이름을 골라 바로 연결하세요.</div>`
+document.getElementById('wifiInfo').innerHTML = WIFI.name
+  ? `<div><b>이름</b><span class="pw">${esc(WIFI.name)}</span></div>`+(WIFI.open
+      ? `<div><b>비밀번호</b>없어요</div>`
       : WIFI.password
         ? (AT_TABLE?`<div><b>비밀번호</b><span class="pw">${esc(WIFI.password)}</span></div>`:`<div><b>비밀번호</b>테이블의 QR을 찍거나 직원에게 물어봐 주세요.</div>`)
         : `<div><b>비밀번호</b>직원에게 물어봐 주세요.</div>`)
   : `<div><b>와이파이</b>이름과 비밀번호는 직원에게 물어봐 주세요.</div>`;
+/* 「와이파이 연결하기」: 웹페이지가 휴대폰 와이파이를 직접 켜 줄 수는 없어서,
+   안드로이드는 와이파이 설정 화면을 바로 열고, 아이폰은 순서를 보여줘요. */
+(function wifiConnect(){
+  const ua=navigator.userAgent; const android=/Android/i.test(ua); const ios=/iPhone|iPad|iPod/i.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1);
+  const btn=document.getElementById('wifiBtn'), box=document.getElementById('wifiSteps');
+  const name=esc(WIFI.name||'가게 와이파이');
+  const steps=android
+    ? `<ol><li>와이파이 설정 화면이 열려요.</li><li>목록에서 <b>${name}</b>을 누르세요.</li><li>연결되면 뒤로 가기로 돌아오세요.</li></ol>`
+    : ios
+    ? `<ol><li><b>설정</b> 앱을 여세요.</li><li><b>Wi-Fi</b>를 누르세요.</li><li>목록에서 <b>${name}</b>을 누르세요.${WIFI.open?' (비밀번호 없음)':''}</li></ol>`
+    : `<ol><li>휴대폰 와이파이 설정을 여세요.</li><li>목록에서 <b>${name}</b>을 누르세요.</li></ol>`;
+  box.innerHTML=steps+(WIFI.name?`<button type="button" id="wifiCopy">와이파이 이름 복사</button>`:'');
+  if(android) btn.href='intent:#Intent;action=android.settings.WIFI_SETTINGS;end';
+  btn.addEventListener('click',e=>{ box.hidden=false; if(!android) e.preventDefault(); });
+  const cp=document.getElementById('wifiCopy');
+  if(cp) cp.onclick=()=>{ (navigator.clipboard?navigator.clipboard.writeText(WIFI.name):Promise.reject()).then(()=>{cp.textContent='복사했어요';}).catch(()=>{cp.textContent=WIFI.name;}); };
+})();
 document.getElementById('faqList').innerHTML=FAQ.map(f=>`<details class="faq"><summary>${esc(f.q)}</summary><p>${esc(f.a)}</p></details>`).join('');
 
 /* ---------- 공연 일정 + 오늘 밤 ---------- */

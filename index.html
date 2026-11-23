@@ -3,9 +3,23 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>기분이 재즈 메뉴</title>
-<meta name="description" content="재즈와 블루스 라이브 펍 기분이 재즈 메뉴판">
+<title>기분이 재즈 · 대전 탄방동 재즈바 (Feels Like Jazz)</title>
+<meta name="description" content="대전 탄방동 지하의 재즈·블루스 라이브바 기분이 재즈. 매일 19:30–23:30, 연주 1부 20:00 · 2부 21:30. 신청곡, 셀프 5,000원, 특별안주, 공연 일정과 주차 안내.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="기분이 재즈 · 대전 탄방동 재즈바">
+<meta property="og:description" content="매일 19:30–23:30 · 라이브 1부 20:00 · 2부 21:30 · 대전 서구 탄방로7번길 139 지하 1층">
+<meta property="og:image" content="https://kuuki84.github.io/feelslikejazz-menu/photos/og.jpg">
+<meta property="og:url" content="https://kuuki84.github.io/feelslikejazz-menu/">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BarOrPub","name":"기분이 재즈 (Feels Like Jazz)",
+ "url":"https://kuuki84.github.io/feelslikejazz-menu/","image":"https://kuuki84.github.io/feelslikejazz-menu/photos/og.jpg",
+ "address":{"@type":"PostalAddress","streetAddress":"탄방로7번길 139 지하 1층","addressLocality":"대전광역시 서구","addressCountry":"KR"},
+ "openingHoursSpecification":[{"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],"opens":"19:30","closes":"23:30"}],
+ "sameAs":["https://instagram.com/feelslike_jazz"]}
+</script>
 <meta name="theme-color" content="#0e1c2b">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="https://kuuki84.github.io/feelslikejazz-menu/">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Gowun+Batang:wght@400;700&family=Cormorant+Garamond:ital,wght@1,500&display=swap" rel="stylesheet">
 <style>
@@ -76,6 +90,7 @@
   .qty button.plus{background:var(--gold);color:var(--bg);border-color:var(--gold)}
   .qty span{min-width:18px;text-align:center;font-weight:700;font-size:15px}
   .qty .size{font-size:12px;color:var(--sub);margin-right:2px}
+  .selfpay{display:inline-block;margin-top:6px;font-size:11px;color:var(--gold);border:1px solid rgba(201,162,98,.5);border-radius:999px;padding:3px 9px}
   .bar{position:fixed;left:0;right:0;bottom:0;z-index:20;padding:10px 16px calc(10px + env(safe-area-inset-bottom));
     background:rgba(14,28,43,.97);border-top:1px solid var(--line);display:none}
   .bar.show{display:block}
@@ -108,81 +123,173 @@
   .sheet .row button:disabled{opacity:.6}
   .sheet .row button{flex:1;padding:13px;border-radius:10px;font-size:15px;font-family:inherit;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--tx)}
   .sheet .row button.main{background:var(--gold);color:var(--bg);border-color:var(--gold);font-weight:700}
+  /* 공연 일정 · 사진 */
+  .live{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--line);align-items:flex-start}
+  .live:last-child{border-bottom:0}
+  .live .d{flex:none;width:52px;text-align:center;border:1px solid rgba(201,162,98,.45);border-radius:8px;padding:6px 0;line-height:1.2}
+  .live .d b{display:block;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;color:var(--gold)}
+  .live .d span{font-size:11px;color:var(--sub)}
+  .live .d.today{background:var(--gold)}
+  .live .d.today b,.live .d.today span{color:var(--bg)}
+  .live .t{font-size:16px;font-weight:700}
+  .live .w{font-size:13px;color:var(--sub);margin-top:3px;line-height:1.55}
+  .gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+  .gallery img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:8px;display:block;background:var(--card)}
+  .maps{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .maps .btn{margin-top:10px}
+  /* 오늘 밤 */
+  .tonight{max-width:640px;margin:20px auto 0;border:1px solid rgba(201,162,98,.5);border-radius:12px;padding:14px 16px;text-align:left;background:var(--card)}
+  .tn-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}
+  .tn-en{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:17px;letter-spacing:.1em;color:var(--gold)}
+  .tn-st{font-size:12px;color:var(--sub)}
+  .tn-st.on{color:#e0a092;font-weight:700}
+  .act{font-size:15px;line-height:1.7}
+  .act b{color:var(--gold)}
+  .tn-sub{font-size:12px;color:var(--sub);margin-top:6px}
+  .tn-sub a{color:var(--tx);font-weight:700;text-decoration:none}
+  .table-note{margin-top:20px;font-size:13px;color:var(--bg);background:var(--gold);border-radius:10px;padding:10px 14px}
+  .h3{font-family:'Gowun Batang',serif;font-size:18px;margin:22px 0 4px}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 2px}
+  .chips a{font-size:12px;color:var(--sub);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:5px 11px}
+  .cat{scroll-margin-top:58px}
+  .points{list-style:none;margin-top:12px;display:grid;gap:8px}
+  .points li{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:13px;line-height:1.6;color:var(--sub)}
+  .points b{display:block;color:var(--gold);font-size:14px}
+  .place{margin-top:10px}
+  .extra{display:grid;gap:8px;margin-top:10px}
+  .extra div,.wifi div{font-size:14px;line-height:1.6}
+  .extra div{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+  .extra b,.wifi b{color:var(--gold);font-size:12px;margin-right:8px}
+  .wifi{padding:14px 16px;display:grid;gap:6px}
+  .wifi .pw{font-weight:700;letter-spacing:.04em;user-select:all}
+  .wifi-steps{margin-top:10px;background:var(--card);border:1px solid var(--gold);border-radius:10px;padding:12px 16px;font-size:14px;line-height:1.8}
+  .wifi-steps ol{padding-left:18px}
+  .wifi-steps button{margin-top:8px;font-family:inherit;font-size:13px;background:transparent;color:var(--gold);border:1px solid var(--gold);border-radius:999px;padding:6px 12px;cursor:pointer}
+  .wifi-qr{display:flex;gap:14px;align-items:center;margin-top:14px}
+  .wifi-qr img{flex:none;border-radius:8px;background:#fff}
+  .wifi-qr p{font-size:13px;color:var(--sub);line-height:1.7}
+  .faq{border-bottom:1px solid var(--line);padding:4px 0}
+  .faq:last-child{border-bottom:0}
+  .faq summary{cursor:pointer;font-size:15px;font-weight:700;padding:10px 0;list-style:none}
+  .faq summary::before{content:'Q ';color:var(--gold);font-family:'Cormorant Garamond',serif;font-style:italic}
+  .faq p{font-size:14px;color:var(--sub);line-height:1.7;padding:0 0 12px}
 </style>
 </head>
 <body>
 
 <header>
   <img class="logo-img" src="logo-cream.png" alt="기분이 재즈 · FEELS LIKE JAZZ · LIVE JAZZ · BLUES · DRINKS">
-  <h1 class="sr">기분이 재즈</h1>
+  <h1 class="sr">기분이 재즈 · 대전 탄방동 재즈바</h1>
   <p class="tagline">대화 사이에 재즈,<br>그리고 술 한 잔.</p>
-  <p class="intro">재즈와 블루스 라이브를 들으며<br>술 한 잔과 이야기를 나누는 공간입니다.<br>어떤 저녁이든 편하게 들러주세요. 재즈를 잘 몰라도 좋습니다.</p>
-  <div class="info">
-    <div><b>매일 영업</b><br>영업시간 19:30 – 23:30<br>연주 1부 20:00 · 2부 21:30</div>
-    <div><b>예약 · 문의</b><br>인스타그램 DM<br><a href="https://instagram.com/feelslike_jazz" target="_blank" rel="noopener">@feelslike_jazz</a></div>
-  </div>
-  <div class="quick">
-    <a href="#menu-top">메뉴 · 주문<small>담고 결제 안내</small></a>
-    <a href="#request">신청곡 · 채팅<small>프로젝터 화면</small></a>
-    <a href="#parking">주차 안내<small>주차 지도</small></a>
-  </div>
+  <p class="intro">재즈와 블루스 라이브를 들으며 술 한 잔과 이야기를 나누는 공간입니다.<br>재즈를 잘 몰라도 좋습니다.</p>
+  <div class="tonight" id="tonight"></div>
+  <div class="quick" id="quick"></div>
 </header>
 
 <nav><div class="tabs" id="tabs"></div></nav>
-<span id="menu-top"></span>
-<main id="menu"></main>
 
 <main>
-  <section id="guide">
+  <div class="table-note" id="tableNote" hidden>테이블에서 보고 계시네요 🎵 메뉴를 고르고, 신청곡도 남겨 보세요.</div>
+
+  <section id="live" data-tab="공연 일정">
+    <div class="sec-en">LIVE SCHEDULE</div>
+    <h2>공연 일정</h2>
+    <p class="sec-note">매일 1부 20:00 · 2부 21:30 · 일정은 바뀔 수 있어요.</p>
+    <div class="card" id="liveList"></div>
+  </section>
+
+  <section id="about" data-tab="가게 소개">
+    <div class="sec-en">THE ROOM</div>
+    <h2>이런 곳이에요</h2>
+    <div class="gallery">
+      <img src="photos/stage.jpg" alt="무대와 홀 전경" loading="lazy">
+      <img src="photos/instruments.jpg" alt="무대 위 기타와 색소폰" loading="lazy">
+      <img src="photos/table.jpg" alt="전구 조명과 안개꽃이 놓인 테이블" loading="lazy">
+      <img src="photos/nachos.jpg" alt="특별안주 나초" loading="lazy">
+      <img src="photos/bar.jpg" alt="바 선반의 와인과 술" loading="lazy">
+      <img src="photos/wine.jpg" alt="와인과 테이블 조명" loading="lazy">
+    </div>
+    <ul class="points">
+      <li><b>매일 라이브</b>재즈와 블루스 연주가 1부 20:00, 2부 21:30에 열려요.</li>
+      <li><b>신청곡</b>듣고 싶은 곡을 휴대폰으로 신청하면 프로젝터 화면에 떠요.</li>
+      <li><b>셀프 5,000원</b>맥주·음료는 냉장고에서 직접 꺼내 단말기에서 결제해요.</li>
+    </ul>
+  </section>
+
+  <section id="menu" data-tab="메뉴">
+    <div class="sec-en">MENU</div>
+    <h2>메뉴</h2>
+    <div class="chips" id="menuChips"></div>
+    <div id="menuList"></div>
+  </section>
+
+  <section id="guide" data-tab="이용 안내">
     <div class="sec-en">HOW TO ENJOY</div>
     <h2>이용 안내</h2>
     <div class="card"><ol class="guide">
-      <li><span>맥주·음료·안주 패키지는 <b>모두 5,000원</b>입니다. 원하시는 상품을 직접 가져가신 뒤, <b>수량에 맞춰 단말기에서 결제</b>해 주세요. 한 병 더 드실 때도 같은 방법으로 이용하시면 됩니다.</span></li>
-      <li><span>기본안주는 <b>무료</b>로 준비되어 있습니다. 셀프로 드실 만큼 덜어 가시고, 부족하면 더 가져다 드세요.</span></li>
-      <li><span>위스키·보드카·데킬라·와인, 그리고 이번 달 특별안주는 <b>직원에게 주문</b>해 주세요. 결제나 이용이 어려우실 때도 편하게 불러주세요.</span></li>
-      <li><span>잔잔한 연주가 이어지는 동안에도 편하게 대화를 나누셔도 좋습니다. 좋아하는 곡이 들리면 잠시 귀를 기울여 주세요.</span></li>
-      <li><span>방문 예약과 문의는 <b>인스타그램 DM</b>(@feelslike_jazz)으로 받습니다. 날짜와 인원을 함께 알려주세요.</span></li>
+      <li><span>맥주·음료·안주 패키지는 <b>모두 5,000원</b>이에요. 직접 가져가신 뒤 <b>수량에 맞춰 단말기에서 결제</b>해 주세요. 더 드실 때도 같은 방법이에요.</span></li>
+      <li><span>기본안주는 <b>무료</b>예요. 드실 만큼 덜어 가시고, 부족하면 더 가져가세요.</span></li>
+      <li><span>위스키·보드카·데킬라·와인과 이번 달 특별안주는 <b>직원에게 주문</b>해 주세요. 결제가 어려울 때도 편하게 불러주세요.</span></li>
+      <li><span>연주 중에도 편하게 대화하셔도 좋아요. 좋아하는 곡이 들리면 잠시 귀를 기울여 주세요.</span></li>
     </ol></div>
-  </section>
-
-  <section id="place">
-    <div class="sec-en">IN THE ROOM</div>
-    <h2>매장 안내</h2>
-    <div class="place">
-      <div><b>흡연실</b>무대 <strong>왼쪽</strong>에 있습니다.</div>
-      <div><b>화장실</b>무대 <strong>오른쪽</strong>에 있습니다.</div>
+    <div class="place" id="place">
+      <div><b>흡연실</b>무대 <strong>왼쪽</strong></div>
+      <div><b>화장실</b>무대 <strong>오른쪽</strong></div>
     </div>
-    <p class="tip">흡연은 흡연실에서 해 주세요.</p>
+    <div class="extra" id="extraInfo"></div>
   </section>
 
-  <section id="request">
+  <section id="request" data-tab="신청곡">
     <div class="sec-en">SONG REQUEST</div>
     <h2>신청곡 · 채팅</h2>
     <p class="sec-note">듣고 싶은 곡을 신청하거나 한마디를 남기면 프로젝터 화면에 보여요.</p>
-    <div class="card" style="padding:14px 16px;font-size:14px;line-height:1.7">
-      <b>가게 와이파이</b>에 연결한 뒤 아래 버튼을 눌러 주세요.<br>
-      <span class="small">와이파이 이름·비밀번호는 직원에게 물어봐 주세요.</span>
-      <a class="btn" id="guestBtn" href="#">신청곡 · 채팅 열기</a>
+    <a class="btn" id="guestBtn" href="#">신청곡 · 채팅 열기</a>
+    <p class="small">와이파이 없이 휴대폰 데이터로도 열려요. 안 열리면 가게 와이파이에 연결하고 <a id="guestLan" href="#" style="color:var(--gold)">가게 와이파이용 화면</a>을 눌러 주세요.</p>
+  </section>
+
+  <section id="wifi" data-tab="와이파이">
+    <div class="sec-en">FREE WI-FI</div>
+    <h2>와이파이</h2>
+    <div class="card wifi" id="wifiInfo"></div>
+    <a class="btn" id="wifiBtn" href="#">와이파이 연결하기</a>
+    <div class="wifi-steps" id="wifiSteps" hidden></div>
+    <div class="wifi-qr">
+      <img src="wifi-qr.svg" alt="와이파이 연결 QR 코드" width="132" height="132">
+      <p>다른 휴대폰 <b>카메라로 이 QR을 찍으면</b> 바로 연결돼요.<br>테이블 카드의 와이파이 QR도 같아요.</p>
     </div>
   </section>
 
-  <section id="parking">
-    <div class="sec-en">PARKING</div>
-    <h2>주차 안내</h2>
+  <section id="visit" data-tab="오시는 길">
+    <div class="sec-en">VISIT</div>
+    <h2>오시는 길</h2>
     <div class="card" style="padding:14px 16px;font-size:14px;line-height:1.7">
-      가게 앞 주차 공간이 협소합니다. 만차일 때는 <b>근처 주차장</b>이나 <b>문 닫은 가게 앞</b>을 이용해 주세요.<br>
-      <span class="small">주차 지도에서 요일·시간별로 문 닫은 가게(초록), 주차장(P) 위치를 볼 수 있어요. 다른 가게 영업에 방해되지 않게 세워 주세요.</span>
-      <a class="btn" href="./parking/">주차 지도 열기</a>
-      <a class="btn line" href="https://map.kakao.com/link/search/대전 서구 탄방로7번길 139" target="_blank" rel="noopener">길찾기 (탄방로7번길 139)</a>
+      <b>대전 서구 탄방로7번길 139, 지하 1층</b><br>
+      <span class="small" style="margin:0">매일 19:30 – 23:30 · 예약·문의는 인스타그램 DM</span>
+      <div class="maps">
+        <a class="btn line" href="https://map.naver.com/p/search/%EB%8C%80%EC%A0%84%20%EC%84%9C%EA%B5%AC%20%ED%83%84%EB%B0%A9%EB%A1%9C7%EB%B2%88%EA%B8%B8%20139" target="_blank" rel="noopener">네이버 지도</a>
+        <a class="btn line" href="https://place.map.kakao.com/647368140" target="_blank" rel="noopener">카카오맵</a>
+      </div>
     </div>
+    <h3 class="h3">주차</h3>
+    <div class="card" style="padding:14px 16px;font-size:14px;line-height:1.7">
+      가게 앞 주차 공간이 좁아요. 만차일 때는 <b>근처 주차장</b>이나 <b>문 닫은 가게 앞</b>을 이용해 주세요.
+      <span class="small" style="display:block">주차 지도에서 시간별로 문 닫은 가게(초록)와 주차장(P)을 볼 수 있어요. 다른 가게 영업에 방해되지 않게 세워 주세요.</span>
+      <a class="btn" href="./parking/">주차 지도 열기</a>
+    </div>
+  </section>
+
+  <section id="faq" data-tab="자주 묻는 질문">
+    <div class="sec-en">FAQ</div>
+    <h2>자주 묻는 질문</h2>
+    <div class="card" id="faqList"></div>
   </section>
 </main>
 
 <footer>
   <div class="brand">FEELS LIKE JAZZ</div>
-  대전 서구 탄방로7번길 139 (탄방동 1169), 지하 1층<br>
-  흡연실은 무대 왼쪽, 화장실은 무대 오른쪽<br>
-  <a href="https://instagram.com/feelslike_jazz" target="_blank" rel="noopener">Instagram @feelslike_jazz</a>
+  기분이 재즈 · 대전 서구 탄방로7번길 139, 지하 1층<br>
+  매일 19:30 – 23:30 · 연주 1부 20:00 · 2부 21:30<br>
+  예약·문의 <a href="https://instagram.com/feelslike_jazz" target="_blank" rel="noopener">Instagram @feelslike_jazz</a>
 </footer>
 
 <div class="bar" id="bar"><button id="openSheet"><span id="barCount"></span><span>주문 확인 ›</span></button></div>
@@ -197,16 +304,58 @@
    - old: 할인 전 가격(없으면 지우기)
    - pay:"staff" 인 칸은 직원 주문(후불) 품목, beer:true 는 맥주
    ========================================================= */
-/* ★ 결제 안내 기준: 맥주를 이 수 이상 고르면 후불(직원 주문)로 안내 */
+/* ★ 결제 안내 기준: 맥주를 이 수 이상 고르면 후불(직원 주문)로 안내
+   (지금은 셀프 칸(pay:"self")에 담기 버튼이 없어서 쓰이지 않아요. 셀프 칸에 담기를 다시 켜려면 pay:"self"를 지우기) */
 const POSTPAY_BEER_MIN = 5;
 /* ★ 후불 주문을 보내는 곳 (가게 아이맥). 비워 두면 「주문 보내기」 없이 직원 호출 안내만 나와요 */
-/* ★ 손님 신청곡·채팅 화면 (가게 아이맥, 가게 와이파이 안에서만 열림) */
-const GUEST_URL = "http://192.168.1.102:3000/guest";
+/* ★ 손님 신청곡·채팅 화면
+   GUEST_URL     : 인터넷 주소(가게 아이맥 Tailscale Funnel /guest). 와이파이 없이 데이터로도 열려요.
+   GUEST_URL_LAN : 가게 와이파이 안 주소. 인터넷 주소가 안 열릴 때 쓰는 예비 링크 */
+const GUEST_URL = "https://flj-imac.tail647679.ts.net/guest/";
+const GUEST_URL_LAN = "http://192.168.1.102:3000/guest";
 const ORDER_URL = "https://flj-imac.tail647679.ts.net/order-api/orders";
+/* =========================================================
+   ★ 가게 기본 정보 ★
+   ========================================================= */
+const HOURS = { open:"19:30", close:"23:30", sets:["20:00","21:30"] };
+/* 쉬는 날: 정기 휴무 요일(0=일 … 6=토)과 임시 휴무 날짜. 없으면 비워 두기 */
+const CLOSED_WEEKDAYS = [];
+const CLOSED_DATES = [];            // 예) "2026-12-25"
+/* ★ 와이파이: 손님용은 비밀번호 없이 열려 있어요(open:true).
+   비밀번호가 생기면 password에 적고 open:false로 — 비밀번호는 테이블 QR(?at=table) 화면에만 보이지만 페이지 소스에는 들어가요 */
+const WIFI = { name:"feels like jazz public", password:"", open:true };
+/* ★ 이용 정보: 값을 적으면 「이용 안내」 아래에 한 줄씩 나와요. 모르면 "" 로 두기 */
+const INFO = {
+  cover:"",      // 예) "입장료·커버차지 없음"
+  payment:"",    // 예) "카드·간편결제 가능"
+  rental:"",     // 예) "대관 가능 (최대 30명) · 인스타 DM 문의"
+};
+/* ★ 자주 묻는 질문: 확인된 내용만 넣어 두었어요. 더 넣을 땐 { q:"질문", a:"답" } */
+const FAQ = [
+  { q:"재즈를 잘 몰라도 괜찮나요?", a:"네, 괜찮아요. 편하게 들으면서 술 한 잔과 이야기를 나누시면 돼요." },
+  { q:"공연은 언제 하나요?", a:"매일 1부 20:00, 2부 21:30이에요. 그날 라인업은 위 「공연 일정」과 인스타그램에서 알려드려요." },
+  { q:"신청곡은 어떻게 하나요?", a:"「신청곡 · 채팅 열기」를 누르면 돼요. 와이파이 없이 데이터로도 열리고, 신청한 곡과 한마디가 프로젝터 화면에 떠요." },
+  { q:"예약할 수 있나요?", a:"인스타그램 DM(@feelslike_jazz)으로 날짜와 인원을 알려주세요." },
+  { q:"주차는 어디에 하나요?", a:"가게 앞이 좁아서 근처 주차장이나 문 닫은 가게 앞을 이용해 주세요. 「주차 지도」에서 시간별로 볼 수 있어요." },
+  // { q:"혼자 가도 되나요?", a:"" },
+  // { q:"악기를 가져가도 되나요?", a:"" },
+];
+/* =========================================================
+   ★ 공연 일정 ★ (둘 중 편한 방법 하나)
+   ① 구글 시트: 시트를 「파일 → 공유 → 웹에 게시 → CSV」로 게시하고 그 주소를 LIVE_SHEET_CSV 에 넣기.
+      시트 첫 줄 제목: date | time | title | who | note   (date 예: 2026-11-28)
+      시트를 못 읽으면 아래 LIVE 목록을 대신 보여줘요.
+   ② 여기 LIVE 목록에 한 줄씩:
+      { date:"2026-11-28", time:"20:00", title:"블루스 나이트", who:"기타 듀오", note:"신청곡 받아요" },
+   - 지난 날짜는 저절로 숨고, 오늘부터 7일 안 일정만 보여요. 오늘 일정은 맨 위 「오늘 밤」 칸에도 나와요.
+   ========================================================= */
+const LIVE_SHEET_CSV = "";
+const LIVE = [
+];
 /* ========================================================= */
 const MENU = [
-  { id:"self", tab:"셀프 5,000원", en:"SELF SERVICE", title:"맥주 · 음료 · 안주 패키지",
-    note:"직접 가져가신 뒤 단말기에서 먼저 셀프결제해 주세요.",
+  { id:"self", tab:"셀프 5,000원", en:"SELF SERVICE", title:"맥주 · 음료 · 안주 패키지", pay:"self",
+    note:"직접 가져가신 뒤 단말기에서 셀프결제 부탁드립니다.",
     items:[
       { name:"모든 맥주", beer:true, prices:[["",5000]] },
       { name:"모든 음료", prices:[["",5000]] },
@@ -244,13 +393,33 @@ const MENU = [
 
 const won = n => n.toLocaleString('ko-KR') + '원';
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const tabsData = [...MENU.map(c=>[c.id,c.tab]), ['guide','이용 안내'], ['place','흡연실·화장실'], ['request','신청곡'], ['parking','주차']];
-document.getElementById('guestBtn').href = GUEST_URL;
-document.getElementById('tabs').innerHTML = tabsData.map(([id,t])=>`<a href="#${id}">${esc(t)}</a>`).join('');
-document.getElementById('menu').innerHTML = MENU.map(c=>`
-  <section id="${c.id}">
-    <div class="sec-en">${esc(c.en)}</div>
-    <h2>${esc(c.title)}</h2>
+const AT_TABLE = new URLSearchParams(location.search).get('at')==='table';
+const DAY=['일','월','화','수','목','금','토'];
+const ymd=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const toMin=t=>{const [h,m]=String(t).split(':').map(Number);return h*60+(m||0);};
+const isClosed=d=>CLOSED_WEEKDAYS.includes(d.getDay())||CLOSED_DATES.includes(ymd(d));
+
+/* ---------- 테이블 QR 입구: 메뉴·이용 안내·신청곡을 앞으로 ---------- */
+const mainEl=document.querySelector('main');
+if(AT_TABLE){
+  document.getElementById('tableNote').hidden=false;
+  ['wifi','request','guide','menu'].forEach(id=>mainEl.insertBefore(document.getElementById(id),document.getElementById('tableNote').nextSibling));
+}
+document.getElementById('quick').innerHTML=(AT_TABLE
+  ? [['menu','메뉴 · 주문','담고 결제 안내'],['request','신청곡','와이파이 없이도 OK'],['wifi','와이파이','누르면 연결']]
+  : [['live','공연 일정','오늘 · 이번 주'],['menu','메뉴','셀프 5,000원'],['visit','오시는 길','지도 · 주차']]
+).map(([id,t,sm])=>`<a href="#${id}">${t}<small>${sm}</small></a>`).join('');
+
+/* ---------- 위쪽 탭 (5개) ---------- */
+const TAB_IDS=AT_TABLE?['menu','guide','request','wifi','live','visit']:['live','menu','guide','request','wifi','visit'];
+const TAB_NAME={live:'공연',menu:'메뉴',guide:'이용 안내',request:'신청곡',wifi:'와이파이',visit:'오시는 길'};
+document.getElementById('tabs').innerHTML=TAB_IDS.map(id=>`<a href="#${id}">${TAB_NAME[id]}</a>`).join('');
+
+/* ---------- 메뉴 ---------- */
+document.getElementById('menuChips').innerHTML=MENU.map(c=>`<a href="#${c.id}">${esc(c.tab)}</a>`).join('');
+document.getElementById('menuList').innerHTML = MENU.map(c=>`
+  <div class="cat" id="${c.id}">
+    <h3 class="h3">${esc(c.title)}</h3>
     ${c.note?`<p class="sec-note">${esc(c.note)}</p>`:''}
     <div class="card">${c.items.map(it=>`
       <div class="item">
@@ -262,12 +431,80 @@ document.getElementById('menu').innerHTML = MENU.map(c=>`
         <div class="prices">
           ${it.old?`<span class="old">${won(it.old)}</span>`:''}
           ${it.prices.map(([s,p],pi)=>`<div class="price">${s?`<span class="size">${esc(s)}</span>`:''}${won(p)}</div>
-          <div class="qty" data-k="${c.id}|${c.items.indexOf(it)}|${pi}">${s?`<span class="size">${esc(s)}</span>`:''}<button class="minus" aria-label="빼기">−</button><span>0</span><button class="plus" aria-label="담기">+</button></div>`).join('')}
+          ${c.pay==='self'?`<div class="selfpay">셀프결제</div>`:`<div class="qty" data-k="${c.id}|${c.items.indexOf(it)}|${pi}">${s?`<span class="size">${esc(s)}</span>`:''}<button class="minus" aria-label="빼기">−</button><span>0</span><button class="plus" aria-label="담기">+</button></div>`}`).join('')}
         </div>
       </div>`).join('')}
     </div>
     ${c.tip?`<p class="tip">${esc(c.tip)}</p>`:''}
-  </section>`).join('');
+  </div>`).join('');
+
+/* ---------- 이용 정보 · 와이파이 · FAQ ---------- */
+const infoRows=[['입장료',INFO.cover],['결제',INFO.payment],['대관',INFO.rental]].filter(([,v])=>v);
+document.getElementById('extraInfo').innerHTML=infoRows.map(([k,v])=>`<div><b>${k}</b>${esc(v)}</div>`).join('');
+document.getElementById('guestBtn').href = GUEST_URL;
+document.getElementById('guestLan').href = GUEST_URL_LAN;
+document.getElementById('wifiInfo').innerHTML = WIFI.name
+  ? `<div><b>이름</b><span class="pw">${esc(WIFI.name)}</span></div>`+(WIFI.open
+      ? `<div><b>비밀번호</b>없어요</div>`
+      : WIFI.password
+        ? (AT_TABLE?`<div><b>비밀번호</b><span class="pw">${esc(WIFI.password)}</span></div>`:`<div><b>비밀번호</b>테이블의 QR을 찍거나 직원에게 물어봐 주세요.</div>`)
+        : `<div><b>비밀번호</b>직원에게 물어봐 주세요.</div>`)
+  : `<div><b>와이파이</b>이름과 비밀번호는 직원에게 물어봐 주세요.</div>`;
+/* 「와이파이 연결하기」: 웹페이지가 휴대폰 와이파이를 직접 켜 줄 수는 없어서,
+   안드로이드는 와이파이 설정 화면을 바로 열고, 아이폰은 순서를 보여줘요. */
+(function wifiConnect(){
+  const ua=navigator.userAgent; const android=/Android/i.test(ua); const ios=/iPhone|iPad|iPod/i.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1);
+  const btn=document.getElementById('wifiBtn'), box=document.getElementById('wifiSteps');
+  const name=esc(WIFI.name||'가게 와이파이');
+  const steps=android
+    ? `<ol><li>와이파이 설정 화면이 열려요.</li><li>목록에서 <b>${name}</b>을 누르세요.</li><li>연결되면 뒤로 가기로 돌아오세요.</li></ol>`
+    : ios
+    ? `<ol><li><b>설정</b> 앱을 여세요.</li><li><b>Wi-Fi</b>를 누르세요.</li><li>목록에서 <b>${name}</b>을 누르세요.${WIFI.open?' (비밀번호 없음)':''}</li></ol>`
+    : `<ol><li>휴대폰 와이파이 설정을 여세요.</li><li>목록에서 <b>${name}</b>을 누르세요.</li></ol>`;
+  box.innerHTML=steps+(WIFI.name?`<button type="button" id="wifiCopy">와이파이 이름 복사</button>`:'');
+  if(android) btn.href='intent:#Intent;action=android.settings.WIFI_SETTINGS;end';
+  btn.addEventListener('click',e=>{ box.hidden=false; if(!android) e.preventDefault(); });
+  const cp=document.getElementById('wifiCopy');
+  if(cp) cp.onclick=()=>{ (navigator.clipboard?navigator.clipboard.writeText(WIFI.name):Promise.reject()).then(()=>{cp.textContent='복사했어요';}).catch(()=>{cp.textContent=WIFI.name;}); };
+})();
+document.getElementById('faqList').innerHTML=FAQ.map(f=>`<details class="faq"><summary>${esc(f.q)}</summary><p>${esc(f.a)}</p></details>`).join('');
+
+/* ---------- 공연 일정 + 오늘 밤 ---------- */
+function parseCSV(t){const rows=[];let r=[],f='',q=false;for(let i=0;i<t.length;i++){const c=t[i];
+  if(q){if(c=='"'){if(t[i+1]=='"'){f+='"';i++;}else q=false;}else f+=c;}
+  else if(c=='"')q=true;else if(c==','){r.push(f);f='';}else if(c=='\n'||c=='\r'){if(c=='\r'&&t[i+1]=='\n')i++;r.push(f);rows.push(r);r=[];f='';}else f+=c;}
+  if(f||r.length){r.push(f);rows.push(r);}
+  const h=(rows.shift()||[]).map(x=>x.trim().toLowerCase());
+  return rows.filter(x=>x.some(v=>v.trim())).map(x=>Object.fromEntries(h.map((k,i)=>[k,(x[i]||'').trim()])));}
+function renderLive(list){
+  const now=new Date(); const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  const until=new Date(today); until.setDate(until.getDate()+6);
+  const parse=s=>{const [y,m,d]=String(s).split('-').map(Number);return new Date(y,(m||1)-1,d||1);};
+  const up=list.map(e=>({...e,dt:parse(e.date)})).filter(e=>!isNaN(e.dt)&&e.dt>=today&&e.dt<=until)
+    .sort((a,b)=>a.dt-b.dt||String(a.time).localeCompare(String(b.time)));
+  const box=document.getElementById('liveList');
+  box.innerHTML=up.length?up.map(e=>{const isToday=+e.dt===+today;
+    return `<div class="live"><div class="d${isToday?' today':''}"><b>${e.dt.getMonth()+1}/${e.dt.getDate()}</b><span>${isToday?'오늘':DAY[e.dt.getDay()]}</span></div>
+      <div><div class="t">${esc(e.title||'라이브')}</div><div class="w">${[e.time,e.who].filter(Boolean).map(esc).join(' · ')}${e.note?`<br>${esc(e.note)}`:''}</div></div></div>`;}).join('')
+    :`<div class="live"><div class="d"><b>1부</b><span>매일</span></div><div><div class="t">${HOURS.sets[0]}</div><div class="w">재즈 · 블루스 라이브</div></div></div>
+      <div class="live"><div class="d"><b>2부</b><span>매일</span></div><div><div class="t">${HOURS.sets[1]}</div><div class="w">이번 주 라인업은 인스타그램에서 알려드려요.</div></div></div>`;
+  /* 오늘 밤 */
+  const nowM=now.getHours()*60+now.getMinutes(); const o=toMin(HOURS.open), c=toMin(HOURS.close);
+  const tonight=up.filter(e=>+e.dt===+today);
+  let status, live=false;
+  if(isClosed(today)) status='오늘은 쉬어요';
+  else if(nowM<o) status=`오늘 ${HOURS.open}에 문 열어요`;
+  else if(nowM<c){ status='지금 영업 중'; live=HOURS.sets.some(t=>nowM>=toMin(t)&&nowM<toMin(t)+75); }
+  else status=`오늘 영업은 끝났어요 · 내일 ${HOURS.open}`;
+  const acts=tonight.length?tonight.map(e=>`<div class="act">${esc(e.time||'')} <b>${esc(e.title||'라이브')}</b>${e.who?` · ${esc(e.who)}`:''}</div>`).join('')
+    :(isClosed(today)?'':`<div class="act">1부 <b>${HOURS.sets[0]}</b> · 2부 <b>${HOURS.sets[1]}</b></div>`);
+  document.getElementById('tonight').innerHTML=`<div class="tn-head"><span class="tn-en">TONIGHT</span><span class="tn-st${live?' on':''}">${live?'● LIVE · ':''}${status}</span></div>${acts}
+    <div class="tn-sub">매일 ${HOURS.open} – ${HOURS.close} · 예약·문의 <a href="https://instagram.com/feelslike_jazz" target="_blank" rel="noopener">@feelslike_jazz</a></div>`;
+}
+renderLive(LIVE);
+if(LIVE_SHEET_CSV){
+  fetch(LIVE_SHEET_CSV,{cache:'no-store'}).then(r=>r.ok?r.text():Promise.reject()).then(t=>{const rows=parseCSV(t);if(rows.length)renderLive(rows);}).catch(()=>{});
+}
 
 /* ---------- 주문 담기 + 결제 방법 안내 ---------- */
 const cart={};
@@ -288,7 +525,7 @@ function refresh(){
   document.getElementById('bar').classList.toggle('show',n>0); document.body.classList.toggle('has-bar',n>0);
   document.getElementById('barCount').textContent=`${n}개 · ${won(sum)}`;
 }
-document.getElementById('menu').addEventListener('click',e=>{
+document.getElementById('menuList').addEventListener('click',e=>{
   const b=e.target.closest('.qty button'); if(!b) return;
   const k=b.parentElement.dataset.k; const v=(cart[k]||0)+(b.classList.contains('plus')?1:-1);
   cart[k]=Math.max(0,Math.min(99,v)); refresh();
@@ -341,11 +578,12 @@ async function sendOrder(ls){
 }
 
 const links=[...document.querySelectorAll('.tabs a')];
-const secs=[...document.querySelectorAll('section')];
 function mark(){
-  let cur=0; secs.forEach((s,i)=>{ if(s.getBoundingClientRect().top<120) cur=i; });
-  if((innerHeight+scrollY)>=document.body.scrollHeight-4) cur=secs.length-1;
-  links.forEach((a,i)=>a.classList.toggle('on',i===cur));
+  const ids=[...document.querySelectorAll('main > section')].map(x=>x.id);
+  let cur=ids[0]; ids.forEach(id=>{ if(document.getElementById(id).getBoundingClientRect().top<120) cur=id; });
+  if((innerHeight+scrollY)>=document.body.scrollHeight-4) cur=ids[ids.length-1];
+  const tabOf=id=>TAB_IDS.includes(id)?id:(id==='about'?'live':id==='faq'?'visit':null);
+  links.forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+tabOf(cur)));
 }
 addEventListener('scroll',mark,{passive:true}); mark();
 </script>

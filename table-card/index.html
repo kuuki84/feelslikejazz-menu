@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>테이블 QR 카드 (인쇄용)</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&family=Gowun+Batang:wght@700&family=Cormorant+Garamond:ital,wght@1,500&display=swap" rel="stylesheet">
+<style>
+  /* 인쇄: A4 한 장에 카드 4장(A6, 105×148mm). 브라우저 인쇄 → 여백 없음 → 배경 그래픽 켜기 */
+  @page{size:A4;margin:0}
+  :root{--bg:#0e1c2b;--card:#17293d;--line:#2a3f56;--tx:#f3ede1;--sub:#9fb0c0;--gold:#c9a262}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#ddd;font-family:'Noto Sans KR',sans-serif;color:var(--tx)}
+  .help{max-width:210mm;margin:12px auto;font-size:13px;color:#333;line-height:1.6;padding:0 8px}
+  .sheet{width:210mm;height:297mm;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;background:#fff}
+  .c{background:var(--bg);border:.3mm dashed #555;padding:9mm 8mm;display:flex;flex-direction:column;align-items:center;text-align:center;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .c img.logo{width:34mm;margin-bottom:4mm}
+  .row{display:flex;gap:6mm;width:100%;justify-content:center;margin-top:3mm}
+  .q{flex:1;display:flex;flex-direction:column;align-items:center}
+  .q img{width:34mm;height:34mm;background:#fff;border-radius:2mm;padding:1mm}
+  .q b{display:block;font-size:12pt;margin-top:3mm;color:var(--gold)}
+  .q span{font-size:8.5pt;color:var(--sub);line-height:1.5;margin-top:1mm}
+  .en{font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--gold);font-size:11pt;letter-spacing:.08em}
+  .t{font-family:'Gowun Batang',serif;font-size:13pt;margin:1mm 0 2mm}
+  .foot{margin-top:auto;font-size:8pt;color:var(--sub);line-height:1.6}
+  .foot b{color:var(--tx)}
+  @media print{body{background:#fff}.help{display:none}.sheet{margin:0}}
+</style>
+</head>
+<body>
+<p class="help">인쇄 방법: 이 페이지에서 인쇄(⌘P) → 용지 A4, <b>여백 없음</b>, <b>배경 그래픽 켜기</b> → 점선대로 잘라 테이블에 두세요. 카드 한 장(A6)에 메뉴 QR과 와이파이 QR이 함께 있어요.</p>
+<div class="sheet" id="sheet"></div>
+<script>
+const card=`<div class="c">
+  <img class="logo" src="../logo-cream.png" alt="기분이 재즈">
+  <div class="en">AT YOUR TABLE</div>
+  <div class="t">찍으면 바로 열려요</div>
+  <div class="row">
+    <div class="q"><img src="../table-qr.svg" alt="메뉴·주문·신청곡 QR"><b>메뉴 · 신청곡</b><span>주문하고, 듣고 싶은 곡을<br>프로젝터에 띄워 보세요</span></div>
+    <div class="q"><img src="../wifi-qr.svg" alt="와이파이 QR"><b>와이파이</b><span>feels like jazz public<br>비밀번호 없음</span></div>
+  </div>
+  <div class="foot">맥주·음료·안주 패키지 <b>5,000원 셀프결제</b><br>연주 1부 20:00 · 2부 21:30 · @feelslike_jazz</div>
+</div>`;
+document.getElementById('sheet').innerHTML=card.repeat(4);
+</script>
+</body>
+</html>

@@ -404,15 +404,18 @@ const mainEl=document.querySelector('main');
 if(AT_TABLE){
   document.getElementById('tableNote').hidden=false;
   ['wifi','request','guide','menu'].forEach(id=>mainEl.insertBefore(document.getElementById(id),document.getElementById('tableNote').nextSibling));
+}else{
+  /* 웹(인스타·지도·검색·명함 주소)으로 들어오면 메뉴판은 숨겨요. 메뉴는 테이블 QR(?at=table)로 들어올 때만 보여요. */
+  document.getElementById('menu').hidden=true;
 }
 document.getElementById('quick').innerHTML=(AT_TABLE
   ? [['menu','메뉴 · 주문','담고 결제 안내'],['request','신청곡','와이파이 없이도 OK'],['wifi','와이파이','누르면 연결']]
-  : [['live','공연 일정','오늘 · 이번 주'],['menu','메뉴','셀프 5,000원'],['visit','오시는 길','지도 · 주차']]
+  : [['live','공연 일정','오늘 · 이번 주'],['about','가게 모습','사진 · 소개'],['visit','오시는 길','지도 · 주차']]
 ).map(([id,t,sm])=>`<a href="#${id}">${t}<small>${sm}</small></a>`).join('');
 
 /* ---------- 위쪽 탭 (5개) ---------- */
-const TAB_IDS=AT_TABLE?['menu','guide','request','wifi','live','visit']:['live','menu','guide','request','wifi','visit'];
-const TAB_NAME={live:'공연',menu:'메뉴',guide:'이용 안내',request:'신청곡',wifi:'와이파이',visit:'오시는 길'};
+const TAB_IDS=AT_TABLE?['menu','guide','request','wifi','live','visit']:['live','about','guide','request','wifi','visit'];
+const TAB_NAME={live:'공연',about:'가게 모습',menu:'메뉴',guide:'이용 안내',request:'신청곡',wifi:'와이파이',visit:'오시는 길'};
 document.getElementById('tabs').innerHTML=TAB_IDS.map(id=>`<a href="#${id}">${TAB_NAME[id]}</a>`).join('');
 
 /* ---------- 메뉴 ---------- */

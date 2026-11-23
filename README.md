@@ -2,19 +2,19 @@
 
 손님이 QR을 찍으면 열리는 모바일 메뉴판입니다.
 
-- 주소: https://kuuki84.github.io/feelslikejazz-menu/
+- 주소: https://feelslikejazz.co.kr/
 - 메뉴 고치기: `index.html` 안의 `const MENU = [...]` 부분만 고치면 됩니다.
 
 ## 주차 지도 (`parking/`)
 
 가게 1km 안에서 고른 시각에 문 닫은 가게(초록)·영업 중(빨강)·주차장(P)을 지도에 보여 줍니다. 내 위치도 표시됩니다.
 
-- 주소: https://kuuki84.github.io/feelslikejazz-menu/parking/
+- 주소: https://feelslikejazz.co.kr/parking/
 - 자료 고치기: `parking/stores.json`만 고치면 됩니다. 가게는 `stores`에 `{"name","category","lat","lng","hours":{"mon":"10:00-21:00",...,"sun":"휴무"},"parkingFront","note"}` 모양으로 넣습니다. 밤을 넘기면 `"18:00-02:00"`, 모르면 `null`.
 - 지도: `stores.json`의 `naverClientId`에 네이버 클라우드 Maps Client ID를 넣으면 네이버 지도, 비우면 OpenStreetMap. 열쇠가 틀리면 자동으로 OpenStreetMap으로 돌아감. 길찾기는 카카오맵 링크.
 
 ## 관리자 페이지 (`admin/`) — 내용 고치기는 여기서
-- 주소: https://kuuki84.github.io/feelslikejazz-menu/admin/ (홈페이지 맨 아래 「관리자」 글자를 눌러도 열려요)
+- 주소: https://feelslikejazz.co.kr/admin/ (홈페이지 맨 아래 「관리자」 글자를 눌러도 열려요)
 - 고칠 수 있는 것: **공연 일정**(일주일씩, 날짜마다 장르·아티스트·쉬는 날), **아티스트 소개**, **가게 사진**(추가·순서·설명·지우기), **공지**, 영업 시간·쉬는 날, 첫 화면 소개 글, 가게 소개 3줄, 이용 안내, 이용 정보(입장료·결제·대관), 자주 묻는 질문, **메뉴**
 - 처음 한 번만: 「연결」 탭의 순서대로 GitHub 토큰(열쇠)을 만들어 붙여 넣기. 이 저장소 하나에 Contents 「Read and write」 권한만 주면 돼요. 토큰은 그 기기 브라우저에만 저장돼요.
 - 비밀번호: 「연결」 탭에서 관리자 비밀번호를 정하면 페이지를 열 때 물어봐요. 비밀번호는 화면을 가리는 문이고, 저장 권한은 토큰이에요. 잊어버리면 `content.json`에서 `"lock"` 묶음을 지우면 풀려요.
@@ -26,7 +26,7 @@
 - 그냥 들어오면(웹·인스타·지도·명함): (공지) → 오늘 밤(TONIGHT) → 공연 일정(7일) → 가게 소개·사진 → 오시는 길·주차 → 이용 안내 → Free WIFI → 자주 묻는 질문. **메뉴판과 신청곡·채팅은 안 보여요.**
 - 테이블 QR(`?at=table`)로 들어오면: 메뉴 → 이용 안내 → 신청곡·와이파이가 먼저, 와이파이 비밀번호도 이때만 보여요. **메뉴판과 신청곡·채팅은 이때만 보여요.**
   - 예전 메뉴 QR(`menu-qr.png`, 주소 끝에 `?at=table` 없음)로 찍으면 메뉴가 안 나와요. 테이블에는 `table-card`의 새 QR을 놓으세요.
-  - 테이블 QR 주소: `https://kuuki84.github.io/feelslikejazz-menu/?at=table`
+  - 테이블 QR 주소: `https://feelslikejazz.co.kr/?at=table`
 
 ## 코드에서만 고치는 것 (`index.html` 아래쪽 스크립트 맨 위 ★ 표시)
 - `WIFI` 와이파이 이름·비밀번호 (비밀번호는 테이블 QR 화면에만 보이지만, 페이지 소스에는 들어 있어요)

@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>기분이 재즈 · 관리자</title>
+<meta name="theme-color" content="#0e1c2b">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Gowun+Batang:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0e1c2b;--card:#17293d;--line:#2a3f56;--tx:#f3ede1;--sub:#9fb0c0;--gold:#c9a262;--wine:#a5503f;--sage:#7fae8b}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--tx);font-family:'Noto Sans KR',sans-serif;word-break:keep-all;-webkit-font-smoothing:antialiased;padding-bottom:96px}
+  a{color:var(--gold)}
+  header{display:flex;justify-content:space-between;align-items:center;gap:10px;max-width:720px;margin:0 auto;padding:18px 16px 10px}
+  header h1{font-family:'Gowun Batang',serif;font-size:20px}
+  header a{font-size:13px;text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:6px 12px;white-space:nowrap}
+  .state{max-width:720px;margin:0 auto;padding:0 16px;font-size:13px;color:var(--sub)}
+  .state b{color:var(--sage)} .state b.off{color:#e0a092}
+  nav{position:sticky;top:0;z-index:5;background:rgba(14,28,43,.96);border-bottom:1px solid var(--line);margin-top:10px}
+  .tabs{display:flex;gap:6px;overflow-x:auto;padding:10px 16px;max-width:720px;margin:0 auto;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tabs button{flex:none;font-family:inherit;color:var(--sub);font-size:14px;padding:8px 14px;border:1px solid var(--line);border-radius:999px;background:var(--card);cursor:pointer;white-space:nowrap}
+  .tabs button.on{color:var(--bg);background:var(--gold);border-color:var(--gold);font-weight:700}
+  main{max-width:720px;margin:0 auto;padding:6px 16px 0}
+  .panel{display:none} .panel.on{display:block}
+  h2{font-family:'Gowun Batang',serif;font-size:19px;margin:22px 0 4px}
+  .hint{font-size:13px;color:var(--sub);line-height:1.65;margin-bottom:10px}
+  .box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px}
+  .box.new{border-color:var(--gold)}
+  .box-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;font-size:13px;color:var(--gold);font-weight:700}
+  label{display:block;font-size:12px;color:var(--sub);margin-top:10px}
+  label:first-child{margin-top:0}
+  input[type=text],input[type=date],input[type=time],input[type=number],input[type=password],textarea,select{
+    display:block;width:100%;margin-top:4px;padding:10px 11px;font:inherit;font-size:16px;color:var(--tx);background:var(--bg);
+    border:1px solid var(--line);border-radius:8px;min-height:44px}
+  textarea{resize:vertical;line-height:1.55}
+  input:focus,textarea:focus,select:focus{outline:2px solid var(--gold);outline-offset:-1px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .grid2 label{margin-top:10px}
+  .acts{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;margin-top:12px}
+  button{font-family:inherit}
+  .b{font-size:13px;padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--tx);cursor:pointer;min-height:38px}
+  .b.del{color:#e0a092;border-color:rgba(165,80,63,.7)}
+  .b.gold{background:var(--gold);color:var(--bg);border-color:var(--gold);font-weight:700}
+  .b:disabled{opacity:.35;cursor:default}
+  .add{display:block;width:100%;padding:13px;font-size:15px;font-weight:700;border-radius:10px;border:1px dashed var(--gold);background:transparent;color:var(--gold);cursor:pointer;margin:6px 0 10px}
+  .days{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+  .days label{margin:0;display:flex;align-items:center;gap:5px;font-size:14px;color:var(--tx);border:1px solid var(--line);border-radius:8px;padding:8px 10px;cursor:pointer}
+  .days input{width:18px;height:18px;accent-color:var(--gold)}
+  .chk{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--tx);margin-top:12px}
+  .chk input{width:18px;height:18px;accent-color:var(--gold)}
+  .photo{display:grid;grid-template-columns:96px 1fr;gap:12px;align-items:start}
+  .photo img{width:96px;aspect-ratio:4/5;object-fit:cover;border-radius:8px;background:var(--bg);display:block}
+  .tag{display:inline-block;font-size:11px;color:var(--bg);background:var(--gold);border-radius:999px;padding:2px 8px;margin-left:6px;font-weight:700}
+  label.b{margin:0;display:inline-flex;align-items:center}
+  .box.off{opacity:.8;border-color:rgba(165,80,63,.7)}
+  .box-head .chk{font-weight:400;font-size:13px}
+  .week{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:4px 0 10px}
+  .week b{font-size:15px;color:var(--gold)}
+  .aph{width:96px;height:96px;border-radius:50%;object-fit:cover;background:var(--bg);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--sub)}
+  .price-row{display:grid;grid-template-columns:1fr 1fr 44px;gap:8px;align-items:end}
+  .price-row .b{min-height:44px;padding:0}
+  details.cat{background:transparent;border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+  details.cat>summary{cursor:pointer;padding:14px;font-weight:700;font-size:16px;list-style:none;display:flex;justify-content:space-between;gap:8px}
+  details.cat>summary::after{content:'펼치기';font-size:12px;font-weight:400;color:var(--sub)}
+  details.cat[open]>summary::after{content:'접기'}
+  details.cat>.in{padding:0 12px 12px}
+  details.past{margin-top:18px;color:var(--sub);font-size:14px}
+  details.past summary{cursor:pointer;padding:8px 0}
+  .savebar{position:fixed;left:0;right:0;bottom:0;z-index:20;background:rgba(14,28,43,.97);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom))}
+  .savebar .in{max-width:688px;margin:0 auto;display:flex;gap:12px;align-items:center}
+  .savebar p{flex:1;font-size:13px;color:var(--sub);line-height:1.45}
+  .savebar p.ok{color:var(--sage)} .savebar p.bad{color:#e0a092}
+  .savebar button{flex:none;font-size:16px;font-weight:700;padding:13px 22px;border-radius:10px;border:0;background:var(--gold);color:var(--bg);cursor:pointer}
+  .savebar button:disabled{opacity:.4;cursor:default}
+  ol.how{padding-left:20px;font-size:14px;line-height:1.8;color:var(--tx)}
+  ol.how li{margin-bottom:4px}
+  code{background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:13px}
+  body.locked>:not(#gate){display:none}
+  #gate{display:none;max-width:420px;margin:0 auto;padding:22vh 20px 0;text-align:center}
+  body.locked #gate{display:block}
+  #gate h1{font-family:'Gowun Batang',serif;font-size:22px;margin-bottom:6px}
+  #gate .box{text-align:left;margin-top:18px}
+  #gate .b{width:100%;margin-top:12px;min-height:46px;font-size:16px}
+  @media(max-width:420px){.grid2{grid-template-columns:1fr}.grid2.keep{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body class="locked">
+
+<div id="gate">
+  <h1>기분이 재즈 관리자</h1>
+  <p class="hint" id="gateMsg">불러오는 중…</p>
+  <form class="box" id="gateForm" hidden>
+    <label>비밀번호<input type="password" id="gatePw" autocomplete="current-password"></label>
+    <label class="chk"><input type="checkbox" id="gateKeep">이 기기에서는 다시 묻지 않기</label>
+    <button class="b gold" type="submit">들어가기</button>
+  </form>
+</div>
+
+<header>
+  <h1>기분이 재즈 관리자</h1>
+  <a href="../" target="_blank" rel="noopener">홈페이지 보기</a>
+</header>
+<p class="state" id="state">불러오는 중…</p>
+
+<nav><div class="tabs" id="tabs">
+  <button data-tab="live" class="on">공연 일정</button>
+  <button data-tab="artists">아티스트</button>
+  <button data-tab="photos">사진</button>
+  <button data-tab="about">소개 · 안내</button>
+  <button data-tab="menu">메뉴</button>
+  <button data-tab="link">연결</button>
+</div></nav>
+
+<main>
+  <div class="panel on" id="p-live"></div>
+  <div class="panel" id="p-artists"></div>
+  <div class="panel" id="p-photos"></div>
+  <div class="panel" id="p-about"></div>
+  <div class="panel" id="p-menu"></div>
+  <div class="panel" id="p-link">
+    <h2>홈페이지와 연결하기</h2>
+    <p class="hint">고친 내용을 홈페이지에 올리려면 이 기기에서 <b>한 번만</b> 열쇠(GitHub 토큰)를 넣어 주세요. 열쇠는 이 기기 브라우저에만 저장되고, GitHub 말고 다른 곳으로는 보내지 않아요.</p>
+    <div class="box">
+      <label>GitHub 토큰
+        <input type="password" id="token" autocomplete="off" placeholder="github_pat_… 로 시작하는 글자">
+      </label>
+      <div class="acts">
+        <button class="b del" id="logout" hidden>이 기기에서 연결 끊기</button>
+        <button class="b gold" id="login">연결하기</button>
+      </div>
+      <p class="hint" id="linkMsg" style="margin:10px 0 0"></p>
+    </div>
+    <h2>관리자 비밀번호</h2>
+    <p class="hint">정해 두면 이 페이지를 열 때 비밀번호를 물어봐요. <b id="lockState"></b></p>
+    <div class="box">
+      <label>새 비밀번호 (4글자 이상)<input type="password" id="pw1" autocomplete="new-password"></label>
+      <label>한 번 더<input type="password" id="pw2" autocomplete="new-password"></label>
+      <div class="acts">
+        <button class="b del" id="pwOff" hidden>비밀번호 없애기</button>
+        <button class="b gold" id="pwSet">비밀번호 정하기</button>
+      </div>
+      <p class="hint" id="pwMsg" style="margin:10px 0 0"></p>
+    </div>
+    <p class="hint">비밀번호는 화면을 가리는 문이고, 실제로 홈페이지를 고칠 수 있는 권한은 위의 열쇠(토큰)예요. 열쇠가 없는 사람은 비밀번호를 알아도 저장할 수 없어요.</p>
+    <h2>열쇠(토큰) 만드는 방법</h2>
+    <div class="box"><ol class="how">
+      <li>GitHub에 <b>kuuki84</b> 계정으로 로그인하고 <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">토큰 만들기 화면</a>을 열어요.</li>
+      <li><b>Token name</b>에 <code>jazz-admin</code>, <b>Expiration</b>은 원하는 기간(길게 잡아도 돼요).</li>
+      <li><b>Repository access</b> → <b>Only select repositories</b> → <code>feelslikejazz-menu</code> 하나만 고르기.</li>
+      <li><b>Permissions</b> → <b>Repository permissions</b> → <b>Contents</b>를 <b>Read and write</b>로.</li>
+      <li><b>Generate token</b>을 누르고, 나온 글자를 복사해서 위 칸에 붙여 넣고 「연결하기」.</li>
+    </ol></div>
+    <p class="hint">이 열쇠로는 이 홈페이지 저장소의 파일만 고칠 수 있어요. 휴대폰을 잃어버리면 GitHub에서 그 토큰을 지우면 돼요.</p>
+  </div>
+</main>
+
+<datalist id="genres"><option value="재즈"><option value="블루스"><option value="재즈 · 블루스"><option value="보사노바"><option value="스윙"><option value="펑크 · 소울"><option value="잼 세션"></datalist>
+
+<div class="savebar"><div class="in">
+  <p id="msg">고친 내용이 없어요.</p>
+  <button id="save" disabled>저장하기</button>
+</div></div>
+
+<script>
+/* =========================================================
+   기분이 재즈 관리자 페이지
+   - 고친 내용은 저장소의 content.json(글·일정·메뉴)과 photos/(사진)에 한 번에 저장돼요.
+   - 저장하면 GitHub Pages가 1~2분 안에 홈페이지에 반영해요.
+   ========================================================= */
+const OWNER='kuuki84', REPO='feelslikejazz-menu', BRANCH='main';
+const API=`https://api.github.com/repos/${OWNER}/${REPO}`;
+const TOKEN_KEY='flj-admin-token';
+const DAY=['일','월','화','수','목','금','토'];
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ymd=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const today=()=>ymd(new Date());
+
+let token=''; try{ token=localStorage.getItem(TOKEN_KEY)||''; }catch(e){}
+let data=null;            // 지금 고치고 있는 내용
+let saved='';             // 마지막으로 저장된 내용(비교용 글자)
+const newPhotos=new Map();// 새로 올릴 사진: 경로 → {b64, url}
+let repoPhotos=new Set(); // 저장소에 이미 있는 사진 경로
+let busy=false;
+
+/* ---------- 값 읽고 쓰기 (경로 예: "live.2.title") ---------- */
+const getP=p=>p.split('.').reduce((o,k)=>o==null?o:o[k],data);
+function setP(p,v){ const ks=p.split('.'); const last=ks.pop(); const o=ks.reduce((o,k)=>o[k],data); o[last]=v; }
+
+/* ---------- 칸 만들기 ---------- */
+function field(label,path,o={}){
+  const v=getP(path)??''; const ph=o.ph?` placeholder="${esc(o.ph)}"`:'';
+  const input=o.rows
+    ? `<textarea data-p="${path}" rows="${o.rows}"${ph}>${esc(v)}</textarea>`
+    : `<input type="${o.type||'text'}" data-p="${path}" value="${esc(v)}"${ph}${o.type==='number'?' inputmode="numeric" min="0" step="1000"':''}>`;
+  return `<label>${label}${input}</label>`;
+}
+const moveBtns=(list,i,n)=>`<button class="b" data-act="up" data-list="${list}" data-i="${i}"${i===0?' disabled':''} aria-label="위로">↑</button>
+  <button class="b" data-act="down" data-list="${list}" data-i="${i}"${i===n-1?' disabled':''} aria-label="아래로">↓</button>
+  <button class="b del" data-act="del" data-list="${list}" data-i="${i}">지우기</button>`;
+
+/* ---------- 공연 일정 (일주일씩) ---------- */
+let weekOff=0;
+const addDays=(s,n)=>{ const d=new Date(s+'T00:00'); d.setDate(d.getDate()+n); return ymd(d); };
+const liveOf=(date,create)=>{ let e=data.live.find(x=>x.date===date); if(!e&&create){ e={date,genre:'',artists:[],note:''}; data.live.push(e); } return e; };
+function renderLive(){
+  const t=today(), start=addDays(t,weekOff), end=addDays(start,6);
+  const names=data.artists.map(a=>a.name.trim()).filter(Boolean);
+  const lab=s=>{ const d=new Date(s+'T00:00'); return `${d.getMonth()+1}/${d.getDate()}`; };
+  const rows=[...Array(7)].map((_,i)=>{
+    const date=addDays(start,i), d=new Date(date+'T00:00'), e=liveOf(date)||{genre:'',artists:[],note:''};
+    const reg=data.closedWeekdays.includes(d.getDay()), off=reg||data.closedDates.includes(date);
+    const all=[...new Set([...names,...e.artists])];
+    return `<div class="box${off?' off':''}">
+      <div class="box-head"><span>${d.getMonth()+1}월 ${d.getDate()}일 (${DAY[d.getDay()]})${date===t?'<span class="tag">오늘</span>':''}</span>
+        <label class="chk" style="margin:0"><input type="checkbox" data-off="${date}"${off?' checked':''}${reg?' disabled':''}>${reg?'정기 휴무':'쉬는 날'}</label></div>
+      ${off?`<p class="hint" style="margin:0">홈페이지에 「휴무」로 나와요.${reg?' 정기 휴무 요일은 「소개 · 안내」 탭에서 바꿔요.':''}</p>`:`
+      <label>장르<input type="text" list="genres" data-live="${date}" data-k="genre" value="${esc(e.genre)}" placeholder="비워 두면 「재즈 · 블루스 라이브」"></label>
+      <label>아티스트</label>
+      <div class="days">${all.map(n=>`<label><input type="checkbox" data-live="${date}" data-art="${esc(n)}"${e.artists.includes(n)?' checked':''}>${esc(n)}</label>`).join('')||'<span class="hint" style="margin:0">「아티스트」 탭에서 먼저 등록해 주세요.</span>'}</div>
+      <label>한 줄 메모 (없으면 비워 두기)<input type="text" data-live="${date}" data-k="note" value="${esc(e.note)}" placeholder="예) 신청곡 받아요"></label>`}
+    </div>`; }).join('');
+  $('p-live').innerHTML=`<h2>공연 일정</h2>
+    <p class="hint">하루에 한 줄씩, <b>장르</b>와 <b>아티스트</b>만 고르면 돼요. 홈페이지에는 오늘부터 7일이 보이고, <b>쉬는 날</b>을 누르면 그날은 「휴무」로 나오고 맨 위에 「이번 주 휴무」 안내가 떠요.</p>
+    <div class="week"><button class="b" data-act="week" data-d="-7"${weekOff<=0?' disabled':''}>← 앞 7일</button><b>${lab(start)} – ${lab(end)}</b><button class="b" data-act="week" data-d="7">다음 7일 →</button></div>
+    ${rows}
+    <button class="add" data-act="copyprev">앞 7일과 똑같이 채우기 (비어 있는 날만)</button>`;
+}
+
+/* ---------- 아티스트 ---------- */
+function renderArtists(){
+  const a=data.artists;
+  $('p-artists').innerHTML=`<h2>아티스트 소개</h2>
+    <p class="hint">홈페이지 「아티스트 소개」 칸에 순서대로 나와요. 여기 등록한 이름을 「공연 일정」에서 날짜마다 고를 수 있어요. 악기·소개 글·사진은 비워 두면 안 보여요.</p>
+    ${a.map((x,i)=>`<div class="box${newPhotos.has(x.photo)?' new':''}"><div class="photo">
+      ${x.photo?`<img class="aph" src="${esc(photoUrl(x.photo))}" alt="">`:`<div class="aph">사진 없음</div>`}
+      <div>${field('이름',`artists.${i}.name`)}${field('악기 · 역할',`artists.${i}.role`,{ph:'예) 기타 · 보컬'})}</div></div>
+      ${field('소개 글',`artists.${i}.bio`,{rows:3,ph:'예) 블루스 기타리스트. 2015년부터 대전에서 활동하고 있어요.'})}
+      <div class="acts"><label class="b">사진 ${x.photo?'바꾸기':'넣기'}<input type="file" accept="image/*" data-artpick="${i}" hidden></label>
+        ${x.photo?`<button class="b" data-act="delartphoto" data-i="${i}">사진 빼기</button>`:''}${moveBtns('artists',i,a.length)}</div>
+    </div>`).join('')}
+    <button class="add" data-act="add" data-list="artists">+ 아티스트 추가</button>`;
+}
+async function setArtistPhoto(i,file){
+  try{
+    const dataUrl=await shrink(file); const src=`photos/a${Date.now().toString(36)}.jpg`;
+    newPhotos.delete(data.artists[i].photo);
+    newPhotos.set(src,{b64:dataUrl.split(',')[1],url:dataUrl}); data.artists[i].photo=src;
+  }catch(e){ say(e.message||'사진을 열 수 없어요.','bad'); }
+  renderArtists(); dirty();
+}
+
+/* ---------- 사진 ---------- */
+const photoUrl=src=>newPhotos.has(src)?newPhotos.get(src).url:'../'+src;
+function renderPhotos(){
+  const g=data.gallery;
+  $('p-photos').innerHTML=`<h2>가게 사진</h2>
+    <p class="hint">홈페이지 「이런 곳이에요」에 위에서부터 순서대로 보여요(한 줄에 3장). 세로로 긴 사진이 잘 어울리고, <b>손님 얼굴이 나오지 않은 사진</b>만 올려 주세요. 큰 사진은 올릴 때 알아서 줄여요.</p>
+    <label class="add" style="text-align:center">+ 사진 추가<input type="file" id="pick" accept="image/*" multiple hidden></label>
+    ${g.length?g.map((p,i)=>`<div class="box${newPhotos.has(p.src)?' new':''}"><div class="photo">
+      <img src="${esc(photoUrl(p.src))}" alt="">
+      <div>${field(`사진 설명${newPhotos.has(p.src)?'<span class="tag">새 사진</span>':''}`,`gallery.${i}.alt`,{ph:'예) 무대와 홀 전경'})}
+        <div class="acts">${moveBtns('gallery',i,g.length)}</div></div>
+    </div></div>`).join(''):'<p class="hint">사진이 없어요. 사진이 없으면 홈페이지에서 사진 칸이 숨겨져요.</p>'}`;
+}
+async function shrink(file){
+  /* 가로 900px 안쪽으로 줄여 JPEG로 */
+  const url=URL.createObjectURL(file);
+  try{
+    const img=await new Promise((ok,no)=>{ const i=new Image(); i.onload=()=>ok(i); i.onerror=()=>no(new Error('사진을 열 수 없어요')); i.src=url; });
+    const s=Math.min(1,900/img.naturalWidth,1600/img.naturalHeight);
+    const c=document.createElement('canvas'); c.width=Math.round(img.naturalWidth*s); c.height=Math.round(img.naturalHeight*s);
+    c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+    return c.toDataURL('image/jpeg',.82);
+  }finally{ URL.revokeObjectURL(url); }
+}
+async function addPhotos(files){
+  let n=0;
+  for(const f of files){
+    try{
+      const dataUrl=await shrink(f);
+      const src=`photos/p${Date.now().toString(36)}${n++}.jpg`;
+      newPhotos.set(src,{b64:dataUrl.split(',')[1],url:dataUrl});
+      data.gallery.push({src,alt:''});
+    }catch(e){ say(`「${f.name}」 ${e.message||'사진을 열 수 없어요'}.`,'bad'); }
+  }
+  renderPhotos(); dirty();
+}
+
+/* ---------- 소개 · 안내 ---------- */
+function listBox(title,hint,list,fields,addLabel){
+  const a=data[list];
+  return `<h2>${title}</h2>${hint?`<p class="hint">${hint}</p>`:''}
+    ${a.map((x,i)=>`<div class="box">${fields(i)}<div class="acts">${moveBtns(list,i,a.length)}</div></div>`).join('')}
+    <button class="add" data-act="add" data-list="${list}">+ ${addLabel}</button>`;
+}
+function renderAbout(){
+  $('p-about').innerHTML=`<h2>공지</h2>
+    <p class="hint">적으면 홈페이지 맨 위에 눈에 띄게 나와요. 임시 휴무·대관·이벤트 알릴 때 쓰고, 끝나면 비워 두세요.</p>
+    <div class="box">${field('공지 글','notice',{rows:2,ph:'예) 12월 24일은 대관으로 일반 입장이 어려워요.'})}</div>
+
+    <h2>영업 시간 · 쉬는 날</h2>
+    <div class="box">
+      <div class="grid2 keep">${field('문 여는 시간','hours.open',{type:'time'})}${field('문 닫는 시간','hours.close',{type:'time'})}</div>
+      <div class="grid2 keep">${field('1부 시작','hours.sets.0',{type:'time'})}${field('2부 시작 (없으면 비우기)','hours.sets.1',{type:'time'})}</div>
+      <label>매주 쉬는 요일</label>
+      <div class="days">${DAY.map((d,i)=>`<label><input type="checkbox" data-wd="${i}"${data.closedWeekdays.includes(i)?' checked':''}>${d}</label>`).join('')}</div>
+      <label>임시로 쉬는 날 (한 줄에 하루, 예: 2026-12-25)
+        <textarea id="closedDates" rows="2" placeholder="2026-12-25">${esc(data.closedDates.join('\n'))}</textarea></label>
+    </div>
+    <p class="hint">쉬는 날에는 홈페이지 맨 위에 「오늘은 쉬어요」라고 나와요.</p>
+
+    <h2>첫 화면 소개 글</h2>
+    <div class="box">${field('큰 글씨 한마디','tagline',{rows:2})}${field('작은 소개 글','intro',{rows:3})}</div>
+
+    ${listBox('가게 소개 3줄','사진 아래에 나오는 짧은 소개예요.','points',i=>field('제목',`points.${i}.title`)+field('설명',`points.${i}.text`,{rows:2}),'소개 줄 추가')}
+
+    ${listBox('이용 안내','번호 순서대로 나와요. 강조할 말은 <code>**</code>두 개로 감싸면 굵게 보여요. 예) <code>기본안주는 **무료**예요.</code>','guide',i=>field(`${i+1}번`,`guide.${i}`,{rows:3}),'안내 줄 추가')}
+
+    <h2>이용 정보</h2>
+    <p class="hint">적은 것만 「이용 안내」 아래에 한 줄씩 나와요.</p>
+    <div class="box">${field('입장료','info.cover',{ph:'예) 입장료·커버차지 없음'})}${field('결제','info.payment',{ph:'예) 카드·간편결제 가능'})}${field('대관','info.rental',{ph:'예) 대관 가능 (최대 30명) · 인스타 DM 문의'})}</div>
+
+    ${listBox('자주 묻는 질문','','faq',i=>field('질문',`faq.${i}.q`)+field('답',`faq.${i}.a`,{rows:3}),'질문 추가')}`;
+}
+
+/* ---------- 메뉴 ---------- */
+let openCats=new Set();
+function renderMenu(){
+  const m=data.menu;
+  $('p-menu').innerHTML=`<h2>메뉴</h2>
+    <p class="hint">메뉴판은 테이블 QR로 들어온 손님에게만 보여요. 「직원 주문」 묶음에는 담기(+) 버튼이 생기고, 「셀프결제」 묶음에는 가격만 보여요.</p>
+    ${m.map((c,ci)=>`<details class="cat" data-ci="${ci}"${openCats.has(c.id)?' open':''}>
+      <summary><span>${esc(c.title||c.tab||'새 묶음')} <span style="font-weight:400;color:var(--sub);font-size:13px">· ${c.items.length}가지</span></span></summary>
+      <div class="in">
+        <div class="box">
+          <div class="grid2">${field('묶음 이름',`menu.${ci}.title`)}${field('짧은 이름 (고르는 버튼)',`menu.${ci}.tab`)}</div>
+          <label>주문 방법<select data-p="menu.${ci}.pay"><option value="staff"${c.pay!=='self'?' selected':''}>직원 주문 (담기 버튼 있음)</option><option value="self"${c.pay==='self'?' selected':''}>셀프결제 (가격만 보임)</option></select></label>
+          ${field('묶음 위 안내 글',`menu.${ci}.note`)}${field('묶음 아래 도움말 (없으면 비우기)',`menu.${ci}.tip`)}
+          <div class="acts">${moveBtns('menu',ci,m.length)}</div>
+        </div>
+        ${c.items.map((it,ii)=>`<div class="box">
+          <div class="box-head"><span>${esc(it.name||'새 메뉴')}</span></div>
+          ${field('이름',`menu.${ci}.items.${ii}.name`)}
+          <div class="grid2">${field('분류 (이름 위 작은 글씨)',`menu.${ci}.items.${ii}.kind`,{ph:'예) 레드와인 · 칠레'})}${field('덧붙임 (이름 아래)',`menu.${ci}.items.${ii}.sub`)}</div>
+          ${field('설명',`menu.${ci}.items.${ii}.desc`,{rows:2})}
+          ${it.prices.map((p,pi)=>`<div class="price-row">${field('용량 (없으면 비우기)',`menu.${ci}.items.${ii}.prices.${pi}.0`,{ph:'예) 750mL'})}${field('가격 (원)',`menu.${ci}.items.${ii}.prices.${pi}.1`,{type:'number'})}
+            <button class="b del" data-act="delprice" data-ci="${ci}" data-ii="${ii}" data-pi="${pi}"${it.prices.length<2?' disabled':''} aria-label="이 가격 지우기">×</button></div>`).join('')}
+          <label class="chk"><input type="checkbox" data-beer="${ci}.${ii}"${it.beer?' checked':''}>맥주예요 (5병 이상 담으면 후불로 안내)</label>
+          <div class="acts"><button class="b" data-act="addprice" data-ci="${ci}" data-ii="${ii}">+ 용량·가격 추가</button>${moveBtns(`menu.${ci}.items`,ii,c.items.length)}</div>
+        </div>`).join('')}
+        <button class="add" data-act="additem" data-ci="${ci}">+ 메뉴 추가</button>
+      </div></details>`).join('')}
+    <button class="add" data-act="addcat">+ 메뉴 묶음 추가</button>`;
+}
+
+function renderAll(){ renderLive(); renderArtists(); renderPhotos(); renderAbout(); renderMenu(); }
+const RENDER={live:renderLive,artists:()=>{renderArtists();renderLive();},gallery:renderPhotos,points:renderAbout,guide:renderAbout,faq:renderAbout,menu:renderMenu};
+const renderFor=list=>(RENDER[list.split('.')[0]]||renderAll)();
+
+/* ---------- 내용 다듬기 ---------- */
+function normalize(j){
+  const A=(v)=>Array.isArray(v)?v:[];
+  const d={version:1,updated:'',notice:'',tagline:'',intro:'',...j};
+  d.hours={open:'19:30',close:'23:30',...(j.hours||{})}; d.hours.sets=A(d.hours.sets).slice(0,2); while(d.hours.sets.length<2) d.hours.sets.push('');
+  const t0=today();
+  d.closedWeekdays=A(j.closedWeekdays).map(Number); d.closedDates=A(j.closedDates).filter(x=>!(/^\d{4}-\d{2}-\d{2}$/.test(x)&&x<t0)).sort();
+  d.gallery=A(j.gallery).map(p=>({src:p.src||'',alt:p.alt||''}));
+  d.points=A(j.points).map(p=>({title:p.title||'',text:p.text||''}));
+  d.guide=A(j.guide).map(String);
+  d.info={cover:'',payment:'',rental:'',...(j.info||{})};
+  d.faq=A(j.faq).map(f=>({q:f.q||'',a:f.a||''}));
+  /* 지난 날짜는 불러올 때 정리해요 */
+  d.live=A(j.live).map(e=>({date:e.date||'',genre:e.genre||e.title||'',artists:A(e.artists).length?A(e.artists).map(String):(e.who?[String(e.who)]:[]),note:e.note||''})).filter(e=>e.date>=t0);
+  d.artists=A(j.artists).map(a=>({name:a.name||'',role:a.role||'',bio:a.bio||'',photo:a.photo||''}));
+  d.menu=A(j.menu).map(c=>({...c,items:A(c.items).map(it=>({...it,prices:A(it.prices).length?it.prices.map(p=>[p[0]||'',Number(p[1])||0]):[['',0]]}))}));
+  return d;
+}
+/* 저장할 모양: 빈 칸 정리, 일정은 날짜순 */
+function cleaned(){
+  const d=JSON.parse(JSON.stringify(data));
+  const t=s=>String(s??'').trim();
+  d.notice=t(d.notice); d.tagline=t(d.tagline); d.intro=t(d.intro);
+  d.hours.sets=d.hours.sets.filter(Boolean);
+  d.closedWeekdays.sort();
+  d.closedDates.sort();
+  d.live=d.live.map(e=>({date:e.date,genre:t(e.genre),artists:e.artists.filter(Boolean),note:t(e.note)})).filter(e=>e.date&&(e.genre||e.artists.length||e.note))
+    .sort((a,b)=>a.date.localeCompare(b.date));
+  d.artists=d.artists.map(a=>({name:t(a.name),role:t(a.role),bio:t(a.bio),photo:a.photo||''})).filter(a=>a.name);
+  d.points=d.points.filter(p=>t(p.title)||t(p.text));
+  d.guide=d.guide.map(t).filter(Boolean);
+  d.faq=d.faq.filter(f=>t(f.q));
+  d.menu.forEach(c=>{ ['note','tip'].forEach(k=>{ if(!t(c[k])) delete c[k]; });
+    c.items=c.items.filter(it=>t(it.name));
+    c.items.forEach(it=>{ ['kind','sub','desc'].forEach(k=>{ if(!t(it[k])) delete it[k]; }); if(!it.beer) delete it.beer;
+      it.prices=it.prices.map(p=>[t(p[0]),Number(p[1])||0]); }); });
+  return d;
+}
+const snapshot=()=>{ const d=cleaned(); delete d.updated; return JSON.stringify(d); };
+
+/* ---------- 상태 표시 ---------- */
+function say(text,kind){ const m=$('msg'); m.textContent=text; m.className=kind||''; }
+function isDirty(){ return data&&(snapshot()!==saved||newPhotos.size>0); }
+function dirty(){
+  const d=isDirty();
+  $('save').disabled=busy||!d;
+  if(!busy) say(d?(token?'고친 내용이 있어요. 저장하면 홈페이지에 올라가요.':'고친 내용이 있어요. 저장하려면 먼저 「연결」에서 열쇠를 넣어 주세요.'):'고친 내용이 없어요.');
+}
+function showState(){
+  $('state').innerHTML=token?'<b>● 연결됨</b> · 저장하면 1~2분 뒤 홈페이지에 반영돼요.':'<b class="off">● 연결 안 됨</b> · 둘러보고 고칠 수는 있지만, 저장하려면 「연결」 탭에서 열쇠를 넣어 주세요.';
+  $('logout').hidden=!token; $('token').placeholder=token?'연결되어 있어요 (바꾸려면 새 토큰을 넣기)':'github_pat_… 로 시작하는 글자';
+}
+function showTab(t){
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('on',p.id==='p-'+t));
+  scrollTo(0,0);
+}
+
+/* ---------- GitHub ---------- */
+async function gh(path,opt={}){
+  const r=await fetch(API+path,{...opt,cache:'no-store',headers:{'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28',
+    ...(token?{'Authorization':'Bearer '+token}:{}),...(opt.body?{'Content-Type':'application/json'}:{}),...(opt.headers||{})}});
+  if(!r.ok){ const j=await r.json().catch(()=>({})); const e=new Error(j.message||('HTTP '+r.status)); e.status=r.status; throw e; }
+  return r;
+}
+function explain(e){
+  if(e.status===401) return '열쇠(토큰)가 틀렸거나 기한이 지났어요. 「연결」 탭에서 새 토큰을 넣어 주세요.';
+  if(e.status===403||e.status===404) return '이 열쇠로는 저장할 수 없어요. 토큰을 만들 때 feelslikejazz-menu 저장소와 Contents 「Read and write」를 골랐는지 확인해 주세요.';
+  if(e.status===409||e.status===422) return '저장하는 사이에 다른 곳에서 내용이 바뀌었어요. 잠시 뒤 「저장하기」를 한 번 더 눌러 주세요.';
+  if(!e.status) return '인터넷 연결을 확인하고 다시 눌러 주세요.';
+  return '저장하지 못했어요 ('+e.message+').';
+}
+async function load(){
+  let j=null;
+  try{ j=await (await gh(`/contents/content.json?ref=${BRANCH}`,{headers:{'Accept':'application/vnd.github.raw+json'}})).json(); }catch(e){}
+  if(!j){ try{ const r=await fetch('../content.json',{cache:'no-store'}); if(r.ok) j=await r.json(); }catch(e){} }
+  if(!j){ $('gateMsg').textContent='내용을 불러오지 못했어요. 인터넷 연결을 확인하고 새로 고침해 주세요.'; return; }
+  data=normalize(j); saved=snapshot(); newPhotos.clear();
+  repoPhotos=new Set([...data.gallery.map(p=>p.src),...data.artists.map(a=>a.photo)].filter(Boolean));
+  renderAll(); showState(); showLock(); dirty(); gate();
+}
+async function save(){
+  if(busy||!isDirty()) return;
+  if(!token){ showTab('link'); $('linkMsg').textContent='저장하려면 먼저 열쇠를 넣어 주세요.'; $('token').focus(); return; }
+  const out=cleaned();
+  const badDate=out.closedDates.find(d=>!/^\d{4}-\d{2}-\d{2}$/.test(d));
+  if(badDate){ showTab('about'); say(`임시로 쉬는 날 「${badDate}」을 2026-12-25 같은 모양으로 적어 주세요.`,'bad'); return; }
+  if(!out.hours.open||!out.hours.close||!out.hours.sets.length){ showTab('about'); say('문 여는 시간·닫는 시간·1부 시작 시간을 채워 주세요.','bad'); return; }
+  out.updated=new Date().toISOString();
+  busy=true; $('save').disabled=true;
+  try{
+    say('저장하는 중…');
+    const head=(await (await gh(`/git/ref/heads/${BRANCH}`)).json()).object.sha;
+    const baseTree=(await (await gh(`/git/commits/${head}`)).json()).tree.sha;
+    const used=new Set([...out.gallery.map(p=>p.src),...out.artists.map(a=>a.photo)].filter(Boolean));
+    const tree=[{path:'content.json',mode:'100644',type:'blob',content:JSON.stringify(out,null,2)+'\n'}];
+    let n=0; const ups=[...newPhotos].filter(([src])=>used.has(src));
+    for(const [src,p] of ups){
+      say(`사진 올리는 중… (${++n}/${ups.length})`);
+      const blob=await (await gh('/git/blobs',{method:'POST',body:JSON.stringify({content:p.b64,encoding:'base64'})})).json();
+      tree.push({path:src,mode:'100644',type:'blob',sha:blob.sha});
+    }
+    /* 목록에서 뺀 사진은 저장소에서도 지워요 */
+    for(const src of repoPhotos) if(!used.has(src)&&/^photos\/[\w.\-]+$/.test(src)) tree.push({path:src,mode:'100644',type:'blob',sha:null});
+    say('저장하는 중…');
+    const t=await (await gh('/git/trees',{method:'POST',body:JSON.stringify({base_tree:baseTree,tree})})).json();
+    const c=await (await gh('/git/commits',{method:'POST',body:JSON.stringify({message:'관리자 페이지에서 내용 고침',tree:t.sha,parents:[head]})})).json();
+    await gh(`/git/refs/heads/${BRANCH}`,{method:'PATCH',body:JSON.stringify({sha:c.sha})});
+    data=normalize(out); saved=snapshot(); newPhotos.clear(); repoPhotos=used;
+    busy=false; renderAll(); dirty();
+    say('저장했어요. 1~2분 뒤 홈페이지에 반영돼요.','ok');
+  }catch(e){ busy=false; dirty(); say(explain(e),'bad'); }
+}
+
+/* ---------- 누르기 · 적기 ---------- */
+$('tabs').addEventListener('click',e=>{ const b=e.target.closest('button'); if(b) showTab(b.dataset.tab); });
+$('save').onclick=save;
+document.querySelector('main').addEventListener('input',e=>{
+  const el=e.target; if(!data) return;
+  if(el.dataset.p){ setP(el.dataset.p, el.type==='number'?(Number(el.value)||0):el.value); if(/^artists\.\d+\.name$/.test(el.dataset.p)) renderLive(); }
+  else if(el.dataset.off){ const d=el.dataset.off; data.closedDates=data.closedDates.filter(x=>x!==d); if(el.checked) data.closedDates.push(d); data.closedDates.sort(); renderLive(); renderAbout(); }
+  else if(el.dataset.live){ const e=liveOf(el.dataset.live,true);
+    if(el.dataset.art!==undefined){ e.artists=e.artists.filter(x=>x!==el.dataset.art); if(el.checked) e.artists.push(el.dataset.art); } else e[el.dataset.k]=el.value; }
+  else if(el.dataset.wd!==undefined){ const i=+el.dataset.wd; data.closedWeekdays=data.closedWeekdays.filter(x=>x!==i); if(el.checked) data.closedWeekdays.push(i); renderLive(); }
+  else if(el.dataset.beer){ const [ci,ii]=el.dataset.beer.split('.'); data.menu[ci].items[ii].beer=el.checked; }
+  else if(el.id==='closedDates'){ data.closedDates=el.value.split(/[\n,]+/).map(s=>s.trim()).filter(Boolean); renderLive(); }
+  else return;
+  dirty();
+});
+document.querySelector('main').addEventListener('change',e=>{
+  const el=e.target;
+  if(el.id==='pick'){ addPhotos([...el.files]); el.value=''; }
+  else if(el.dataset.artpick!==undefined&&el.files[0]) setArtistPhoto(+el.dataset.artpick,el.files[0]);
+});
+document.querySelector('main').addEventListener('toggle',e=>{
+  const d=e.target; if(!d.classList||!d.classList.contains('cat')) return;
+  const c=data.menu[+d.dataset.ci]; if(!c) return; d.open?openCats.add(c.id):openCats.delete(c.id);
+},true);
+const BLANK={artists:()=>({name:'',role:'',bio:'',photo:''}),points:()=>({title:'',text:''}),guide:()=>'',faq:()=>({q:'',a:''})};
+document.querySelector('main').addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]'); if(!b||!data) return;
+  const act=b.dataset.act, i=+b.dataset.i, list=b.dataset.list, arr=list?getP(list):null;
+  if(act==='up'||act==='down'){ const j=i+(act==='up'?-1:1); [arr[i],arr[j]]=[arr[j],arr[i]]; renderFor(list); }
+  else if(act==='del'){
+    const what=list==='gallery'?'이 사진을':list==='artists'?'이 아티스트를':list==='menu'?'이 메뉴 묶음을 통째로':'이 칸을';
+    if(!confirm(what+' 지울까요?')) return;
+    const [x]=arr.splice(i,1); if(x){ newPhotos.delete(x.src); newPhotos.delete(x.photo); } renderFor(list); }
+  else if(act==='add'){ arr.push(BLANK[list]()); renderFor(list); }
+  else if(act==='week'){ weekOff=Math.max(0,weekOff+(+b.dataset.d)); renderLive(); scrollTo(0,0); return; }
+  else if(act==='copyprev'){ const start=addDays(today(),weekOff); let n=0;
+    for(let k=0;k<7;k++){ const date=addDays(start,k), src=liveOf(addDays(date,-7)), cur=liveOf(date);
+      if(src&&(src.genre||src.artists.length)&&!(cur&&(cur.genre||cur.artists.length||cur.note))){ const e=liveOf(date,true); e.genre=src.genre; e.artists=[...src.artists]; e.note=src.note; n++; } }
+    renderLive(); dirty(); say(n?`앞 7일에서 ${n}일 치를 가져왔어요.`:'가져올 일정이 없어요. 앞 7일이 비어 있거나 이 주가 이미 채워져 있어요.'); return; }
+  else if(act==='delartphoto'){ newPhotos.delete(data.artists[i].photo); data.artists[i].photo=''; renderArtists(); }
+  else if(act==='addcat'){ const id='c'+Date.now().toString(36); data.menu.push({id,tab:'',title:'',pay:'staff',note:'직원에게 주문해 주세요.',items:[{name:'',prices:[['',0]]}]}); openCats.add(id); renderMenu(); }
+  else if(act==='additem'){ data.menu[+b.dataset.ci].items.push({name:'',prices:[['',0]]}); renderMenu(); }
+  else if(act==='addprice'){ data.menu[+b.dataset.ci].items[+b.dataset.ii].prices.push(['',0]); renderMenu(); }
+  else if(act==='delprice'){ data.menu[+b.dataset.ci].items[+b.dataset.ii].prices.splice(+b.dataset.pi,1); renderMenu(); }
+  dirty();
+});
+
+/* ---------- 비밀번호로 들어가기 ----------
+   비밀번호 자체는 어디에도 저장하지 않고, 섞어서 만든 값(해시)만 content.json의 lock에 둬요. */
+const UNLOCK_KEY='flj-admin-unlock';
+const hex=buf=>[...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+async function derive(pw,salt){
+  const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveBits']);
+  return hex(await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:new TextEncoder().encode(salt),iterations:150000},key,256));
+}
+const lockHash=()=>(data&&data.lock&&data.lock.hash)||'';
+function unlocked(){ const h=lockHash(); if(!h) return true;
+  try{ return sessionStorage.getItem(UNLOCK_KEY)===h||localStorage.getItem(UNLOCK_KEY)===h; }catch(e){ return false; } }
+function remember(keep){ try{ sessionStorage.setItem(UNLOCK_KEY,lockHash()); if(keep) localStorage.setItem(UNLOCK_KEY,lockHash()); }catch(e){} }
+function gate(){
+  if(unlocked()){ document.body.classList.remove('locked'); return; }
+  $('gateMsg').textContent='비밀번호를 넣어 주세요.'; $('gateForm').hidden=false; $('gatePw').focus();
+}
+$('gateForm').onsubmit=async e=>{
+  e.preventDefault(); const pw=$('gatePw').value; if(!pw) return;
+  $('gateMsg').textContent='확인하는 중…';
+  if(await derive(pw,data.lock.salt)===lockHash()){ remember($('gateKeep').checked); $('gatePw').value=''; document.body.classList.remove('locked'); }
+  else{ $('gateMsg').textContent='비밀번호가 맞지 않아요. 다시 넣어 주세요.'; $('gatePw').select(); }
+};
+function showLock(){ const on=!!lockHash(); $('lockState').textContent=on?'지금은 비밀번호가 걸려 있어요.':'지금은 비밀번호가 없어요.';
+  $('pwOff').hidden=!on; $('pwSet').textContent=on?'비밀번호 바꾸기':'비밀번호 정하기'; }
+$('pwSet').onclick=async()=>{
+  const a=$('pw1').value, b=$('pw2').value, m=$('pwMsg');
+  if(a.length<4){ m.textContent='4글자 이상으로 정해 주세요.'; return; }
+  if(a!==b){ m.textContent='두 칸이 서로 달라요. 다시 적어 주세요.'; return; }
+  const salt=hex(crypto.getRandomValues(new Uint8Array(16)));
+  data.lock={salt,hash:await derive(a,salt)}; remember(false);
+  $('pw1').value=$('pw2').value=''; m.textContent='아래 「저장하기」를 눌러야 적용돼요.'; showLock(); dirty();
+};
+$('pwOff').onclick=()=>{ if(!confirm('비밀번호를 없앨까요? 누구나 이 페이지를 열 수 있게 돼요(저장은 열쇠가 있어야 해요).')) return;
+  delete data.lock; $('pwMsg').textContent='아래 「저장하기」를 눌러야 적용돼요.'; showLock(); dirty(); };
+
+/* ---------- 연결 ---------- */
+$('login').onclick=async()=>{
+  const v=$('token').value.trim(); const m=$('linkMsg');
+  if(!v){ m.textContent='토큰을 붙여 넣어 주세요.'; return; }
+  const old=token; token=v; m.textContent='확인하는 중…';
+  try{
+    await gh('');
+    try{ localStorage.setItem(TOKEN_KEY,v); }catch(e){}
+    $('token').value=''; m.textContent='연결했어요. 이제 고치고 「저장하기」를 누르면 홈페이지에 올라가요.';
+    showState(); dirty();
+  }catch(e){ token=old; m.textContent=e.status===401?'토큰이 맞지 않아요. 복사한 글자를 처음부터 끝까지 다시 붙여 넣어 주세요.':explain(e); }
+};
+$('logout').onclick=()=>{ if(!confirm('이 기기에서 연결을 끊을까요? 다시 쓰려면 토큰을 넣어야 해요.')) return;
+  token=''; try{ localStorage.removeItem(TOKEN_KEY); }catch(e){} $('linkMsg').textContent='연결을 끊었어요.'; showState(); dirty(); };
+addEventListener('beforeunload',e=>{ if(isDirty()){ e.preventDefault(); e.returnValue=''; } });
+
+load();
+</script>
+</body>
+</html>

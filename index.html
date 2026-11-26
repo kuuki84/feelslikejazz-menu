@@ -15,7 +15,7 @@
  "url":"https://feelslikejazz.co.kr/","image":"https://feelslikejazz.co.kr/photos/og.jpg",
  "address":{"@type":"PostalAddress","streetAddress":"탄방로7번길 139 지하 1층","addressLocality":"대전광역시 서구","addressCountry":"KR"},
  "openingHoursSpecification":[{"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],"opens":"19:30","closes":"23:30"}],
- "sameAs":["https://instagram.com/feelslike_jazz","https://www.facebook.com/feelslikejazz","https://place.map.kakao.com/647368140"]}
+ "sameAs":["https://instagram.com/feelslike_jazz","https://www.facebook.com/feelslikejazz","https://place.map.kakao.com/647368140","https://pf.kakao.com/_ESsxeX"]}
 </script>
 <meta name="theme-color" content="#0e1c2b">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -290,10 +290,14 @@
     <h2>오시는 길</h2>
     <div class="card" style="padding:14px 16px;font-size:14px;line-height:1.7">
       <b>대전 서구 탄방로7번길 139, 지하 1층</b><br>
-      <span class="small" style="margin:0" id="visitHours">매일 19:30 – 23:30 · 예약·문의는 인스타그램 DM</span>
+      <span class="small" style="margin:0" id="visitHours">매일 19:30 – 23:30 · 예약·문의는 카카오톡 채널 · 인스타그램 DM</span>
       <div class="maps">
         <a class="btn line" href="https://map.naver.com/p/search/%EB%8C%80%EC%A0%84%20%EC%84%9C%EA%B5%AC%20%ED%83%84%EB%B0%A9%EB%A1%9C7%EB%B2%88%EA%B8%B8%20139" target="_blank" rel="noopener" data-ic="pin">네이버 지도</a>
         <a class="btn line" href="https://place.map.kakao.com/647368140" target="_blank" rel="noopener" data-ic="pin">카카오맵</a>
+      </div>
+      <div class="maps">
+        <a class="btn line" href="https://pf.kakao.com/_ESsxeX/chat" target="_blank" rel="noopener" data-ic="chat">카카오톡 문의</a>
+        <a class="btn line" href="https://instagram.com/feelslike_jazz" target="_blank" rel="noopener" data-ic="insta">인스타그램 DM</a>
       </div>
     </div>
     <h3 class="h3">주차</h3>
@@ -315,7 +319,7 @@
   <div class="brand">FEELS LIKE JAZZ</div>
   기분이 재즈 · 대전 서구 탄방로7번길 139, 지하 1층<br>
   <span id="footHours">매일 19:30 – 23:30 · 연주 1부 20:00 · 2부 21:30</span><br>
-  예약·문의 <a href="https://instagram.com/feelslike_jazz" target="_blank" rel="noopener" data-ic="insta">Instagram @feelslike_jazz</a><br>
+  예약·문의 <a href="https://instagram.com/feelslike_jazz" target="_blank" rel="noopener" data-ic="insta">Instagram @feelslike_jazz</a> · <a href="https://pf.kakao.com/_ESsxeX" target="_blank" rel="noopener" data-ic="chat">카카오톡 채널</a><br>
   <a class="admin" href="./admin/" rel="nofollow">관리자</a>
 </footer>
 
@@ -379,7 +383,7 @@ const DEFAULTS = {
     { q:"재즈를 잘 몰라도 괜찮나요?", a:"네, 괜찮아요. 편하게 들으면서 술 한 잔과 이야기를 나누시면 돼요." },
     { q:"공연은 언제 하나요?", a:"매일 1부 20:00, 2부 21:30이에요. 그날 라인업은 위 「공연 일정」과 인스타그램에서 알려드려요." },
     { q:"신청곡은 어떻게 하나요?", a:"테이블에 있는 QR을 찍으면 「신청곡 · 채팅」이 나와요. 와이파이 없이 데이터로도 열리고, 신청한 곡과 한마디가 프로젝터 화면에 떠요." },
-    { q:"예약할 수 있나요?", a:"인스타그램 DM(@feelslike_jazz)으로 날짜와 인원을 알려주세요." },
+    { q:"예약할 수 있나요?", a:"카카오톡 채널이나 인스타그램 DM(@feelslike_jazz)으로 날짜와 인원을 알려주세요." },
     { q:"주차는 어디에 하나요?", a:"가게 앞이 좁아서 근처 주차장이나 문 닫은 가게 앞을 이용해 주세요. 「주차 지도」에서 시간별로 볼 수 있어요." }
   ],
   live: [],
@@ -467,6 +471,7 @@ const ICON_PATH={
   glass:'<path d="M7 3h10l-1 6a4 4 0 0 1-8 0L7 3zM12 13v8M8 21h8"/>',
   parking:'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M10 16.5V7.5h3a2.75 2.75 0 0 1 0 5.5h-3"/>',
   insta:'<rect x="4" y="4" width="16" height="16" rx="4.5"/><circle cx="12" cy="12" r="3.5"/><circle cx="16.6" cy="7.4" r=".9" fill="currentColor" stroke="none"/>',
+  chat:'<path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v7a2.5 2.5 0 0 1-2.5 2.5H11l-4.5 4v-4A2.5 2.5 0 0 1 4 13.5v-7z"/>',
   bell:'<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15L6 16zM10 21h4"/>',
 };
 const icon=n=>`<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON_PATH[n]||''}</svg>`;
@@ -486,7 +491,7 @@ $('artistList').innerHTML=ARTISTS.map(a=>`<div class="artist">
   ${/^photos\/[\w.\-]+$/.test(a.photo||'')?`<img class="ph" src="${esc(a.photo)}" alt="${esc(a.name)}" loading="lazy">`:`<div class="ph" aria-hidden="true">${esc(String(a.name).trim().charAt(0))}</div>`}
   <div><div class="n">${esc(a.name)}</div>${a.role?`<div class="r">${esc(a.role)}</div>`:''}${a.bio?`<div class="bio">${br(a.bio)}</div>`:''}</div></div>`).join('');
 $('artists').hidden=!ARTISTS.length;
-$('visitHours').textContent=`매일 ${HOURS.open} – ${HOURS.close} · 예약·문의는 인스타그램 DM`;
+$('visitHours').textContent=`매일 ${HOURS.open} – ${HOURS.close} · 예약·문의는 카카오톡 채널 · 인스타그램 DM`;
 $('footHours').textContent=`매일 ${HOURS.open} – ${HOURS.close} · 연주 ${SETS_TEXT}`;
 /* 사진을 누르면 크게 보기 */
 const lb=$('lightbox');
